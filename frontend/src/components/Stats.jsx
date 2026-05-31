@@ -46,6 +46,7 @@ function StatItem({ number, suffix, label, delay, duration }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: false }}
       transition={{ duration: 0.8, delay }}
+      className="stat-item"
       style={{ textAlign: 'left', flex: 1, minWidth: '200px' }}>
       <div style={{
         fontSize: '72px',
@@ -53,8 +54,7 @@ function StatItem({ number, suffix, label, delay, duration }) {
         color: '#ffffff',
         letterSpacing: '-3px',
         lineHeight: '1',
-        marginBottom: '16px',
-        fontFamily: 'Arial, sans-serif'
+        marginBottom: '16px'
       }}>
         {count}{suffix}
       </div>
@@ -63,7 +63,7 @@ function StatItem({ number, suffix, label, delay, duration }) {
         fontSize: '16px',
         fontWeight: '400',
         lineHeight: '1.6',
-        maxWidth: '160px'
+        maxWidth: '220px'
       }}>
         {label}
       </div>
@@ -73,10 +73,10 @@ function StatItem({ number, suffix, label, delay, duration }) {
 
 function Stats() {
   const stats = [
-    { number: 500, suffix: '+', label: 'Students using NoteNest daily', delay: 0, duration: 10500 },
-{ number: 5000, suffix: '+', label: 'Notes created by students', delay: 0.1, duration: 800 },
-{ number: 99, suffix: '%', label: 'Student satisfaction rate', delay: 0.2, duration: 0 },
-{ number: 100, suffix: '%', label: 'Free forever no hidden cost', delay: 0.3, duration: 0 },
+    { number: 500, suffix: '+', label: 'Students using NoteNest daily', delay: 0, duration: 1500 },
+    { number: 5000, suffix: '+', label: 'Notes created by students', delay: 0.1, duration: 1500 },
+    { number: 99, suffix: '%', label: 'Student satisfaction rate', delay: 0.2, duration: 1500 },
+    { number: 100, suffix: '%', label: 'Free forever no hidden cost', delay: 0.3, duration: 1500 },
   ]
 
   return (
@@ -87,12 +87,15 @@ function Stats() {
 
 
       {/* Stats Row */}
-      <div style={{
-        display: 'flex',
-        gap: '0px',
-        flexWrap: 'wrap',
-        alignItems: 'flex-start'
-      }}>
+      <div 
+        className="stats-container"
+        style={{
+          display: 'flex',
+          gap: '0px',
+          flexWrap: 'wrap',
+          alignItems: 'flex-start'
+        }}
+      >
         {stats.map((s, i) => (
           <React.Fragment key={i}>
             <StatItem
@@ -103,13 +106,16 @@ function Stats() {
               duration={s.duration}
             />
             {i < stats.length - 1 && (
-              <div style={{
-                width: '1px',
-                height: '120px',
-                background: 'linear-gradient(to bottom, transparent, #1e1e3a, transparent)',
-                margin: '0 40px',
-                alignSelf: 'center'
-              }} />
+              <div 
+                className="stats-separator"
+                style={{
+                  width: '1px',
+                  height: '120px',
+                  background: 'linear-gradient(to bottom, transparent, #1e1e3a, transparent)',
+                  margin: '0 40px',
+                  alignSelf: 'center'
+                }} 
+              />
             )}
           </React.Fragment>
         ))}

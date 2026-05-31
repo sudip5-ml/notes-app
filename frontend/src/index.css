@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -5,7 +7,43 @@
 }
 
 body {
-  background-color: #000000;
+  background-color: #0f0f1a;
   color: #f8f8f8;
-  font-family: Arial, sans-serif;
+  font-family: 'Outfit', sans-serif;
+}
+
+button, input, textarea, select {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Stats Section Responsive Helpers */
+@media (max-width: 1024px) {
+  .stats-separator {
+    display: none !important;
+  }
+  .stats-container {
+    justify-content: center !important;
+    gap: 40px !important;
+  }
+  .stat-item {
+    text-align: center !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f0f1a;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e1e3a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7c6ff7;
 }

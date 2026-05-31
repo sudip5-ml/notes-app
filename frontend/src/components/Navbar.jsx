@@ -53,15 +53,11 @@ function Navbar() {
 
           <button onClick={() => scrollTo('features')} style={{ ...linkStyle, padding: '8px 12px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>Features</button>
 
-          <button onClick={() => scrollTo('demo')} style={{ ...linkStyle, padding: '8px 12px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>How it Works</button>
+          <button onClick={() => scrollTo('pricing')} style={{ ...linkStyle, padding: '8px 12px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>Pricing</button>
 
-          <button onClick={() => scrollTo('stats')} style={{ ...linkStyle, padding: '8px 12px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>Stats</button>
-
-          <button onClick={() => scrollTo('testimonials')} style={{ ...linkStyle, padding: '8px 12px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>Testimonials</button>
+          <button onClick={() => scrollTo('about')} style={{ ...linkStyle, padding: '8px 12px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>About</button>
 
           <button onClick={() => scrollTo('faq')} style={{ ...linkStyle, padding: '8px 12px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>FAQ</button>
-
-          <button onClick={() => scrollTo('contact')} style={{ ...linkStyle, padding: '8px 12px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>Contact</button>
 
           <div style={{ width: '1px', height: '20px', background: '#1e1e3a', margin: '0 8px' }} />
 

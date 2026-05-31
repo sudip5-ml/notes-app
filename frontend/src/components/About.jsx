@@ -1,94 +1,192 @@
 import React from 'react'
+import { motion } from 'framer-motion'
 
 function About() {
-  const team = [
-    { name: 'Sudip Neupane', role: 'Backend Developer & Team Lead', icon: '👨‍💻', desc: 'Handles all the backend logic, database and server side of NoteNest.' },
-    { name: 'Umesh Budha', role: 'UI/UX Designer & Frontend', icon: '🎨', desc: 'Designs the interface and builds the frontend using React.js and Figma.' },
-    { name: 'Nabi Akhtar Khan', role: 'QA & Documentation', icon: '📄', desc: 'Tests the app, finds bugs and handles all project documentation.' },
-  ]
-
   return (
     <section id="about" style={{
-      padding: '100px 80px',
-      background: '#13131f',
-      textAlign: 'center'
+      padding: '120px 80px',
+      background: '#0f0f1a',
+      maxWidth: '1000px',
+      margin: '0 auto'
     }}>
 
-     
+      {/* Mission Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false }}
+        transition={{ duration: 0.8 }}
+        style={{ marginBottom: '100px' }}
+      >
+        <h2 style={{
+          fontSize: '48px',
+          fontWeight: '700',
+          marginBottom: '24px',
+          color: '#ffffff',
+          letterSpacing: '-1.5px',
+          lineHeight: '1.2'
+        }}>
+          We believe note-taking should be{' '}
+          <span style={{
+            background: 'linear-gradient(135deg, #7c6ff7, #a78bfa)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>
+            simple
+          </span>
+        </h2>
 
-      <h2 style={{
-        fontSize: '40px',
-        fontWeight: '800',
-        marginBottom: '12px',
-        color: '#ffffff',
-        letterSpacing: '-1px'
-      }}>
-        Built by <span style={{
-          background: 'linear-gradient(135deg, #7c6ff7, #a78bfa)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent'
-        }}>Students</span>
-      </h2>
+        <p style={{
+          color: '#9ca3af',
+          fontSize: '18px',
+          lineHeight: '1.8',
+          maxWidth: '700px',
+          marginBottom: '32px'
+        }}>
+          NoteNest was built because existing note apps are either too complex or too expensive. 
+          We wanted something that just works—no learning curve, no subscriptions, no clutter.
+        </p>
 
-      <p style={{
-        color: '#6b7280',
-        maxWidth: '500px',
-        margin: '0 auto 60px',
-        lineHeight: '1.8',
-        fontSize: '16px'
-      }}>
-        We are three students from Kathmandu Institute of Technology
-        building NoteNest as our major project.
-      </p>
+        <p style={{
+          color: '#6b7280',
+          fontSize: '16px',
+          lineHeight: '1.7',
+          maxWidth: '700px'
+        }}>
+          As students ourselves, we understand the pain of scattered notes, lost documents, 
+          and complicated interfaces. NoteNest is our answer to that problem.
+        </p>
+      </motion.div>
 
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '24px',
-        flexWrap: 'wrap'
-      }}>
-        {team.map((m, i) => (
-          <div
-            key={i}
-            onMouseEnter={e => {
-              e.currentTarget.style.borderColor = 'rgba(124,111,247,0.5)'
-              e.currentTarget.style.transform = 'translateY(-6px)'
-              e.currentTarget.style.boxShadow = '0 0 30px rgba(124,111,247,0.15)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.borderColor = '#1e1e3a'
-              e.currentTarget.style.transform = 'translateY(0px)'
-              e.currentTarget.style.boxShadow = 'none'
-            }}
-            style={{
-              background: '#0f0f1a',
-              borderRadius: '16px',
-              padding: '36px 24px',
-              width: '240px',
-              border: '1px solid #1e1e3a',
-              transition: 'all 0.3s ease'
-            }}>
-            <div style={{ fontSize: '52px', marginBottom: '16px' }}>{m.icon}</div>
-            <h3 style={{
-              marginBottom: '6px',
-              color: '#ffffff',
-              fontSize: '17px',
-              fontWeight: '700'
-            }}>{m.name}</h3>
-            <p style={{
-              color: '#7c6ff7',
-              fontSize: '12px',
-              marginBottom: '12px',
-              fontWeight: '600'
-            }}>{m.role}</p>
-            <p style={{
-              color: '#6b7280',
-              fontSize: '13px',
-              lineHeight: '1.6'
-            }}>{m.desc}</p>
-          </div>
-        ))}
-      </div>
+      {/* Values */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        style={{ marginBottom: '100px' }}
+      >
+        <h3 style={{
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#7c6ff7',
+          textTransform: 'uppercase',
+          letterSpacing: '2px',
+          marginBottom: '32px'
+        }}>
+          Our Principles
+        </h3>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '40px'
+        }}>
+          {[
+            { title: 'Simplicity First', desc: 'No complex features you will never use. Just the essentials.' },
+            { title: 'Always Free', desc: 'Students should not have to pay to organize their notes.' },
+            { title: 'Privacy Matters', desc: 'Your notes belong to you. We do not sell your data.' }
+          ].map((value, i) => (
+            <div key={i}>
+              <h4 style={{
+                color: '#ffffff',
+                fontSize: '18px',
+                fontWeight: '600',
+                marginBottom: '12px'
+              }}>
+                {value.title}
+              </h4>
+              <p style={{
+                color: '#6b7280',
+                fontSize: '15px',
+                lineHeight: '1.7'
+              }}>
+                {value.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Team Section - Minimal */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+      >
+        <h3 style={{
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#7c6ff7',
+          textTransform: 'uppercase',
+          letterSpacing: '2px',
+          marginBottom: '32px'
+        }}>
+          The Team
+        </h3>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '32px'
+        }}>
+          {[
+            { name: 'Sudip Neupane', role: 'Backend & Lead' },
+            { name: 'Umesh Budha', role: 'Design & Frontend' },
+            { name: 'Nabi Akhtar Khan', role: 'QA & Documentation' }
+          ].map((member, i) => (
+            <div
+              key={i}
+              style={{
+                padding: '24px',
+                background: '#13131f',
+                borderRadius: '8px',
+                border: '1px solid #1e1e3a'
+              }}
+            >
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #7c6ff7, #a78bfa)',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontWeight: '700',
+                fontSize: '18px'
+              }}>
+                {member.name.charAt(0)}
+              </div>
+              <h4 style={{
+                color: '#ffffff',
+                fontSize: '16px',
+                fontWeight: '600',
+                marginBottom: '4px'
+              }}>
+                {member.name}
+              </h4>
+              <p style={{
+                color: '#6b7280',
+                fontSize: '13px'
+              }}>
+                {member.role}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <p style={{
+          color: '#4b5563',
+          fontSize: '14px',
+          marginTop: '32px',
+          fontStyle: 'italic'
+        }}>
+          Kathmandu Institute of Technology • Major Project 2026
+        </p>
+      </motion.div>
 
     </section>
   )
