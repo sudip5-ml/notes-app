@@ -7,6 +7,7 @@ import About from '../components/About'
 import FAQ from '../components/FAQ'
 import Footer from '../components/Footer'
 
+
 function Home() {
   return (
     <div style={{ background: '#0f0f1a', minHeight: '100vh' }}>
