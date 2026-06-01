@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatedHeading } from './Stats'
 
 function Testimonials() {
   const [current, setCurrent] = useState(0)
@@ -24,23 +25,18 @@ function Testimonials() {
     }}>
 
       
-      {/* Title */}
-      <motion.h2
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false }}
-        transition={{ duration: 0.8, delay: 0.1 }}
+      {/* Title with Letter Stagger Animation */}
+      <AnimatedHeading 
+        text="What Students Say" 
         style={{
-          fontSize: '40px', fontWeight: '800',
-          marginBottom: '12px', color: '#ffffff',
-          letterSpacing: '-1px'
-        }}>
-        What <span style={{
-          background: 'linear-gradient(135deg, #7c6ff7, #a78bfa)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent'
-        }}>Students Say</span>
-      </motion.h2>
+          fontSize: '40px', 
+          fontWeight: '800',
+          marginBottom: '12px', 
+          color: '#ffffff',
+          letterSpacing: '-1px',
+          justifyContent: 'center'
+        }} 
+      />
 
       <motion.p
         initial={{ opacity: 0, y: 20 }}
