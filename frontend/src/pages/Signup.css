@@ -8,7 +8,7 @@
 }
 
 .signup-page{
-  min-height:100vh;
+  min-height:80vh;
   background:#0f0f1a;
 
   display:flex;
@@ -24,7 +24,7 @@
   position:absolute;
 
   width:600px;
-  height:600px;
+  height:500px;
 
   top:-250px;
   right:-250px;
@@ -65,6 +65,8 @@
   border-radius:24px;
 
   padding:48px;
+  margin-top: 30px;
+  margin-bottom: 50px;
 
   box-shadow:
     0 30px 100px rgba(0,0,0,.6),
@@ -133,7 +135,7 @@ h1{
   width:100%;
   padding:15px;
 
-  margin-bottom:22px;
+  margin-bottom:10px;
 
   background:#13131f;
 
@@ -158,7 +160,7 @@ h1{
 }
 
 .signup-form button{
-  margin-top:10px;
+  margin-top:5px;
 
   border:none;
 

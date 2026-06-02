@@ -50,7 +50,7 @@ function Signup() {
 
         <p className="footer-text">
           Already have an account?
-          <a href="/"> Sign In</a>
+          <a href="/login"> Sign In</a>
         </p>
 
       </div>
