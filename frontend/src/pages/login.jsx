@@ -1,5 +1,3 @@
-import "./Login.css";
-
 function Login() {
   return (
     <div className="login-page">
@@ -44,4 +42,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Login

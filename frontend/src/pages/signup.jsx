@@ -1,5 +1,3 @@
-import "./Signup.css";
-
 function Signup() {
   return (
     <div className="signup-page">
@@ -58,4 +56,4 @@ function Signup() {
   );
 }
 
-export default Signup;
+export default Signup

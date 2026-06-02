@@ -49,21 +49,25 @@ function Navbar() {
         </div>
 
         {/* Nav Links */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
 
-          <button onClick={() => scrollTo('features')} style={{ ...linkStyle, padding: '8px 12px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>Features</button>
+          <button onClick={() => scrollTo('features')} style={{ ...linkStyle, padding: '8px 10px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>Features</button>
 
-          <button onClick={() => scrollTo('pricing')} style={{ ...linkStyle, padding: '8px 12px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>Pricing</button>
+          <button onClick={() => scrollTo('stats')} style={{ ...linkStyle, padding: '8px 10px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>Stats</button>
 
-          <button onClick={() => scrollTo('about')} style={{ ...linkStyle, padding: '8px 12px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>About</button>
+          <button onClick={() => scrollTo('pricing')} style={{ ...linkStyle, padding: '8px 10px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>Pricing</button>
 
-          <button onClick={() => scrollTo('faq')} style={{ ...linkStyle, padding: '8px 12px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>FAQ</button>
+          <button onClick={() => scrollTo('testimonials')} style={{ ...linkStyle, padding: '8px 10px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>Testimonials</button>
 
-          <div style={{ width: '1px', height: '20px', background: '#1e1e3a', margin: '0 8px' }} />
+          <button onClick={() => scrollTo('about')} style={{ ...linkStyle, padding: '8px 10px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>About</button>
 
-          <button onClick={() => navigate('/login')} onMouseEnter={e => { e.target.style.color = '#ffffff' }} onMouseLeave={e => { e.target.style.color = '#7c6ff7' }} style={{ padding: '8px 20px', background: 'transparent', color: '#7c6ff7', border: '1px solid #2a2a4a', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '15px', transition: 'all 0.2s' }}>Login</button>
+          <button onClick={() => scrollTo('faq')} style={{ ...linkStyle, padding: '8px 10px', borderRadius: '6px' }} onMouseEnter={e => { e.currentTarget.style.color = '#ffffff' }} onMouseLeave={e => { e.currentTarget.style.color = '#6b7280' }}>FAQ</button>
 
-          <button onClick={() => navigate('/signup')} onMouseEnter={e => { e.target.style.background = '#6355e0' }} onMouseLeave={e => { e.target.style.background = '#7c6ff7' }} style={{ padding: '8px 20px', background: '#7c6ff7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '15px', transition: 'background 0.2s' }}>Sign Up</button>
+          <div style={{ width: '1px', height: '20px', background: '#1e1e3a', margin: '0 6px' }} />
+
+          <button onClick={() => navigate('/login')} onMouseEnter={e => { e.target.style.color = '#ffffff' }} onMouseLeave={e => { e.target.style.color = '#7c6ff7' }} style={{ padding: '8px 16px', background: 'transparent', color: '#7c6ff7', border: '1px solid #2a2a4a', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '14px', transition: 'all 0.2s' }}>Login</button>
+
+          <button onClick={() => navigate('/signup')} onMouseEnter={e => { e.target.style.background = '#6355e0' }} onMouseLeave={e => { e.target.style.background = '#7c6ff7' }} style={{ padding: '8px 16px', background: '#7c6ff7', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '14px', transition: 'background 0.2s' }}>Sign Up</button>
 
         </div>
       </nav>
