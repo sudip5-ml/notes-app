@@ -7,7 +7,7 @@ function Login() {
           <span>NN</span>
         </div>
 
-        <h1>Welcome Back</h1>
+        <h1>Welcome Back </h1>
 
         <p className="description">
           Sign in to access your notes, organize your thoughts,
