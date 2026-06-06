@@ -1,16 +1,40 @@
-import React, { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 
+const formatDate = (d = new Date()) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+
+const seedNotes = () => [
+  { id: 1, title: 'My First Note', content: 'This is my first note on NoteNest! Welcome to your personal notes space.', date: formatDate(), favorite: false },
+  { id: 2, title: 'Study Notes', content: 'React is a frontend library built by Facebook. It uses components to build UIs.', date: formatDate(), favorite: false },
+  { id: 3, title: 'Project Ideas', content: 'Build a notes app using React and Node.js. Add login, search and delete features.', date: formatDate(), favorite: false },
+]
+
+const load = (key, fallback) => {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : fallback
+  } catch {
+    return fallback
+  }
+}
+
 function Dashboard() {
   const navigate = useNavigate()
-  const [notes, setNotes] = useState([
-    { id: 1, title: 'My First Note', content: 'This is my first note on NoteNest! Welcome to your personal notes space.', date: '2083-01-29', favorite: false },
-    { id: 2, title: 'Study Notes', content: 'React is a frontend library built by Facebook. It uses components to build UIs.', date: '2083-01-29', favorite: false },
-    { id: 3, title: 'Project Ideas', content: 'Build a notes app using React and Node.js. Add login, search and delete features.', date: '2083-01-29', favorite: false },
-  ])
+  const userName = localStorage.getItem('nn_user') || 'Sudip Neupane'
+  const userInitial = userName.trim().charAt(0).toUpperCase() || 'S'
 
-  const [trash, setTrash] = useState([])
+  const [notes, setNotes] = useState(() => load('nn_notes', seedNotes()))
+  const [trash, setTrash] = useState(() => load('nn_trash', []))
+
+  // Persist notes and trash so they survive a page refresh
+  useEffect(() => {
+    localStorage.setItem('nn_notes', JSON.stringify(notes))
+  }, [notes])
+  useEffect(() => {
+    localStorage.setItem('nn_trash', JSON.stringify(trash))
+  }, [trash])
   const [selected, setSelected] = useState(null)
   const [search, setSearch] = useState('')
   const [activeNav, setActiveNav] = useState('All Notes')
@@ -38,7 +62,7 @@ function Dashboard() {
         id: Date.now(),
         title: newTitle,
         content: newContent,
-        date: new Date().toLocaleDateString(),
+        date: formatDate(),
         favorite: false
       }
       setNotes([note, ...notes])
@@ -94,8 +118,8 @@ function Dashboard() {
   return (
     <div style={{
       display: 'flex', height: '100vh',
-      background: '#0f0f1a', color: '#ffffff',
-      fontFamily: 'Arial, sans-serif', overflow: 'hidden'
+      background: 'var(--bg)', color: '#ffffff',
+      fontFamily: 'var(--font)', overflow: 'hidden'
     }}>
 
       {/* ── SIDEBAR ── */}
@@ -182,9 +206,9 @@ function Dashboard() {
             display: 'flex', alignItems: 'center',
             justifyContent: 'center', fontSize: '14px',
             fontWeight: 'bold', flexShrink: 0
-          }}>S</div>
+          }}>{userInitial}</div>
           <div>
-            <div style={{ fontSize: '13px', fontWeight: '600' }}>Sudip Neupane</div>
+            <div style={{ fontSize: '13px', fontWeight: '600' }}>{userName}</div>
             <div style={{ fontSize: '11px', color: '#6b7280', cursor: 'pointer' }}
               onClick={() => navigate('/')}>
               ← Back to Home
@@ -450,7 +474,7 @@ function Dashboard() {
                         <span style={{ fontSize: '14px' }}>{note.favorite ? '⭐' : ''}</span>
                       </div>
                       <p style={{ fontSize: '13px', color: '#6b7280', lineHeight: '1.6', marginBottom: '16px' }}>
-                        {note.content.slice(0, 80)}...
+                        {note.content.length > 80 ? note.content.slice(0, 80) + '…' : note.content}
                       </p>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: '11px', color: '#3a3a5a' }}>{note.date}</span>

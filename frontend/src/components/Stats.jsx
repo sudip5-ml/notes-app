@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Fragment } from 'react'
 import { motion } from 'framer-motion'
 
 // Clean, readable word-by-word stagger animation
@@ -199,7 +199,7 @@ function Stats() {
           }}
         >
           {stats.map((s, i) => (
-            <React.Fragment key={i}>
+            <Fragment key={i}>
               <StatItem
                 number={s.number}
                 suffix={s.suffix}
@@ -219,7 +219,7 @@ function Stats() {
                   }} 
                 />
               )}
-            </React.Fragment>
+            </Fragment>
           ))}
         </div>
       </div>

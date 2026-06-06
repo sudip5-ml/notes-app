@@ -159,7 +159,7 @@ h1{
     0 0 20px rgba(124,111,247,.2);
 }
 
-.signup-form button{
+.signup-form button[type="submit"]{
   margin-top:5px;
 
   border:none;
@@ -184,7 +184,7 @@ h1{
   transition:.3s;
 }
 
-.signup-form button:hover{
+.signup-form button[type="submit"]:hover:not(:disabled){
   background:
     linear-gradient(
       135deg,
@@ -196,6 +196,39 @@ h1{
 
   box-shadow:
     0 0 25px rgba(124,111,247,.4);
+}
+
+.signup-form button[type="submit"]:disabled{
+  opacity:0.7;
+  cursor:not-allowed;
+}
+
+/* Password strength meter */
+.strength{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.strength-bar{
+  display:flex;
+  gap:5px;
+  flex:1;
+}
+
+.strength-bar span{
+  height:5px;
+  flex:1;
+  border-radius:3px;
+  transition:background 0.3s;
+}
+
+.strength-label{
+  font-size:12px;
+  font-weight:600;
+  min-width:48px;
+  text-align:right;
 }
 
 .footer-text{

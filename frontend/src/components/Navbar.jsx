@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 function Navbar() {
@@ -13,14 +13,15 @@ function Navbar() {
   }, [])
 
   const linkStyle = {
-    color: '#6b7280', textDecoration: 'none',
+    color: 'var(--text-dim)', textDecoration: 'none',
     fontSize: '15px', fontWeight: '500',
     cursor: 'pointer', background: 'none',
-    border: 'none', fontFamily: 'Arial, sans-serif',
+    border: 'none',
   }
 
   const scrollTo = (id) => {
     const element = document.getElementById(id)
+    if (!element) return
     const offset = 80
     const top = element.getBoundingClientRect().top + window.scrollY - offset
     window.scrollTo({ top, behavior: 'smooth' })
@@ -43,7 +44,7 @@ function Navbar() {
       <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 40px', background: scrolled ? 'rgba(15,15,26,0.95)' : '#0f0f1a', backdropFilter: scrolled ? 'blur(10px)' : 'none', borderBottom: scrolled ? '1px solid rgba(124,111,247,0.3)' : '1px solid transparent', transition: 'all 0.3s ease' }}>
 
         {/* Logo */}
-       <div onClick={() => window.location.href = '/'} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+       <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
           <span style={{ background: 'linear-gradient(135deg, #7c6ff7, #a78bfa)', borderRadius: '10px', padding: '6px 10px', fontSize: '16px', fontWeight: '900', color: 'white', boxShadow: '0 0 15px rgba(124,111,247,0.6), 0 0 30px rgba(124,111,247,0.3)', border: '1px solid rgba(167,139,250,0.5)' }}>NN</span>
           <span style={{ fontWeight: '800', fontSize: '18px', color: '#ffffff' }}>NoteNest</span>
         </div>
