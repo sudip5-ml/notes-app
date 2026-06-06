@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import dashboardVideo from '../assets/vidforloop.mp4'
 
 function Hero() {
   const navigate = useNavigate()
+  const [showSignupModal, setShowSignupModal] = useState(false)
 
   return (
     <section style={{
@@ -96,7 +97,7 @@ function Hero() {
           style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginBottom: '64px' }}
         >
           <button
-            onClick={() => navigate('/signup')}
+            onClick={() => setShowSignupModal(true)}
             onMouseEnter={e => {
               e.currentTarget.style.background = 'linear-gradient(135deg, #8b7eff, #bba4ff)'
               e.currentTarget.style.boxShadow = '0 0 25px rgba(124, 111, 247, 0.4)'
@@ -205,6 +206,7 @@ function Hero() {
         </motion.div>
 
       </div>
+
     </section>
   )
 }

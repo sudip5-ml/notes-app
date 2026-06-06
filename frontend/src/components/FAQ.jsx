@@ -23,10 +23,10 @@ function FAQ() {
 
       {/* Title */}
       <motion.h2
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false }}
-        transition={{ duration: 0.8, delay: 0.1 }}
+        viewport={{ once: false, amount: 0.3 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
         style={{
           fontSize: '40px', fontWeight: '800',
           marginBottom: '12px', color: '#ffffff',
@@ -43,8 +43,8 @@ function FAQ() {
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false }}
-        transition={{ duration: 0.8, delay: 0.2 }}
+        viewport={{ once: false, amount: 0.3 }}
+        transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
         style={{ color: '#6b7280', marginBottom: '60px', fontSize: '16px' }}>
         Everything you need to know about NoteNest
       </motion.p>
@@ -60,8 +60,8 @@ function FAQ() {
             key={i}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false }}
-            transition={{ duration: 0.5, delay: i * 0.08 }}>
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.4, delay: i * 0.06, ease: "easeOut" }}>
 
             {/* Question Row */}
             <div
