@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import { useRef } from 'react'
 import { motion } from 'framer-motion'
 import { FiFileText, FiEdit3, FiSearch, FiLock, FiTrash2, FiStar, FiGlobe, FiLayout } from 'react-icons/fi'
 
@@ -49,21 +49,19 @@ function Feature() {
         viewport={{ once: false, amount: 0.3 }}
         transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
         style={{ color: '#6b7280', marginBottom: '48px', fontSize: '16px' }}>
-        Everything you need — click arrows to explore
+        Everything you need — scroll or use the arrows to explore
       </motion.p>
 
       {/* Scrollable Cards */}
       <div
         ref={scrollRef}
+        className="no-scrollbar"
         style={{
           display: 'flex',
           gap: '24px',
-         overflowX: 'hidden',
+          overflowX: 'auto',
           padding: '20px 80px 40px 80px',
-         cursor: 'default',
-        pointerEvents: 'none',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
+          scrollSnapType: 'x proximity',
           WebkitOverflowScrolling: 'touch',
         }}>
 
@@ -98,7 +96,7 @@ function Feature() {
               flexDirection: 'column',
               justifyContent: 'space-between',
               boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-              pointerEvents: 'auto',
+              scrollSnapAlign: 'start',
             }}>
 
             <div>
@@ -128,7 +126,7 @@ function Feature() {
       {/* Bottom Arrows */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginTop: '24px' }}>
         <button
-          onClick={() => scrollRef.current.scrollBy({ left: -320, behavior: 'smooth' })}
+          onClick={() => scrollRef.current?.scrollBy({ left: -320, behavior: 'smooth' })}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(124,111,247,0.4)' }}
           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(124,111,247,0.2)' }}
           style={{
@@ -144,7 +142,7 @@ function Feature() {
           ←
         </button>
         <button
-          onClick={() => scrollRef.current.scrollBy({ left: 320, behavior: 'smooth' })}
+          onClick={() => scrollRef.current?.scrollBy({ left: 320, behavior: 'smooth' })}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(124,111,247,0.4)' }}
           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(124,111,247,0.2)' }}
           style={{
