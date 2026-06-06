@@ -1,3 +1,6 @@
+import { Link } from 'react-router-dom'
+import '../css/Login.css'
+
 function Login() {
   return (
     <div className="login-page">
@@ -34,7 +37,7 @@ function Login() {
 
         <p className="footer-text">
           Don't have an account?
-          <a href="/signup"> Sign up</a>
+          <Link to="/signup"> Sign up</Link>
         </p>
 
       </div>

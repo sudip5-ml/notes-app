@@ -1,3 +1,6 @@
+import { Link } from 'react-router-dom'
+import '../css/Signup.css'
+
 function Signup() {
   return (
     <div className="signup-page">
@@ -48,7 +51,7 @@ function Signup() {
 
         <p className="footer-text">
           Already have an account?
-          <a href="/login"> Sign In</a>
+          <Link to="/login"> Sign In</Link>
         </p>
 
       </div>
