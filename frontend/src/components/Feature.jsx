@@ -27,10 +27,10 @@ function Feature() {
   
       {/* Title */}
       <motion.h2
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false }}
-        transition={{ duration: 0.8, delay: 0.1 }}
+        viewport={{ once: false, amount: 0.3 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
         style={{
           fontSize: '40px', fontWeight: '800',
           marginBottom: '12px', color: '#ffffff',
@@ -46,8 +46,8 @@ function Feature() {
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false }}
-        transition={{ duration: 0.8, delay: 0.2 }}
+        viewport={{ once: false, amount: 0.3 }}
+        transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
         style={{ color: '#6b7280', marginBottom: '48px', fontSize: '16px' }}>
         Everything you need — click arrows to explore
       </motion.p>
@@ -70,10 +70,10 @@ function Feature() {
         {features.map((f, i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false }}
-            transition={{ duration: 0.5, delay: i * 0.05 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.5, delay: i * 0.08, ease: "easeOut" }}
             onMouseEnter={e => {
               e.currentTarget.style.transform = 'translateY(-6px)'
               e.currentTarget.style.boxShadow = '0 0 40px rgba(124,111,247,0.3)'

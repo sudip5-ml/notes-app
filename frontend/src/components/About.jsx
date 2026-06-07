@@ -12,10 +12,10 @@ function About() {
 
       {/* Mission Section */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false }}
-        transition={{ duration: 0.8 }}
+        viewport={{ once: false, amount: 0.3 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
         style={{ marginBottom: '100px' }}
       >
         <h2 style={{
@@ -60,10 +60,10 @@ function About() {
 
       {/* Values */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false }}
-        transition={{ duration: 0.8, delay: 0.2 }}
+        viewport={{ once: false, amount: 0.3 }}
+        transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
         style={{ marginBottom: '100px' }}
       >
         <h3 style={{
@@ -110,10 +110,10 @@ function About() {
 
       {/* Team Section - Minimal */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false }}
-        transition={{ duration: 0.8, delay: 0.4 }}
+        viewport={{ once: false, amount: 0.3 }}
+        transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
       >
         <h3 style={{
           fontSize: '14px',
