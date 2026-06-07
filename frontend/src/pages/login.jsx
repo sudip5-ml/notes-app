@@ -1,9 +1,4 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiEye, FiEyeOff } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
-
+import "../css/Login.css"
 function Login() {
   const navigate = useNavigate();
   
@@ -107,208 +102,43 @@ function Login() {
   };
 
   return (
-    <div style={styles.pageContainer}>
-      {/* Background Glows (from design.md tokens) */}
-      <div style={styles.glowLeft}></div>
-      <div style={styles.glowRight}></div>
-  
-      {/* Main Container */}
-      <div style={styles.container}>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          style={styles.card}
-        >
-          {/* Official NoteNest brand logo */}
-          <div 
-            onClick={() => navigate("/")} 
-            style={styles.logoContainer}
-          >
-            <span style={styles.logoBadge}>NN</span>
-            <span style={styles.logoText}>NoteNest</span>
-          </div>
-  
-          <h2 style={styles.title}>Log in to your account</h2>
-  
-          {/* Validation Alert */}
-          <AnimatePresence mode="wait">
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                style={styles.errorAlert}
-              >
-                {error}
-              </motion.div>
-            )}
-            {success && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                style={styles.successAlert}
-              >
-                Login successful! Loading dashboard...
-              </motion.div>
-            )}
-          </AnimatePresence>
-  
-          <form onSubmit={handleLogin} style={styles.form}>
-            {/* Email Input Group */}
-            <div style={styles.inputGroup}>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="designer@example.com"
-                style={{
-                  ...styles.inputField,
-                  borderColor: focusedField === "email" ? "#7c6ff7" : "#1e1e3a",
-                  boxShadow: focusedField === "email" ? "0 0 10px rgba(124, 111, 247, 0.15)" : "none",
-                }}
-                onFocus={() => setFocusedField("email")}
-                onBlur={() => setFocusedField("")}
-                disabled={loading || loadingGoogle}
-                autoComplete="email"
-              />
-              <label
-                style={{
-                  ...styles.inputLabel,
-                  color: focusedField === "email" ? "#7c6ff7" : "#9ca3af",
-                }}
-              >
-                Email
-              </label>
-            </div>
-  
-            {/* Password Input Group with Forgot Password inside border */}
-            <div style={styles.inputGroup}>
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="password"
-                style={{
-                  ...styles.inputField,
-                  borderColor: focusedField === "password" ? "#7c6ff7" : "#1e1e3a",
-                  boxShadow: focusedField === "password" ? "0 0 10px rgba(124, 111, 247, 0.15)" : "none",
-                  paddingRight: "46px", // Space for eye toggle
-                }}
-                onFocus={() => setFocusedField("password")}
-                onBlur={() => setFocusedField("")}
-                disabled={loading || loadingGoogle}
-                autoComplete="current-password"
-              />
-              
-              {/* Left Label */}
-              <label
-                style={{
-                  ...styles.inputLabel,
-                  color: focusedField === "password" ? "#7c6ff7" : "#9ca3af",
-                }}
-              >
-                Password
-              </label>
-  
-              {/* Right Label (Forgot Password) */}
-              <span
-                onClick={() => navigate("/forgot-password")}
-                style={{
-                  ...styles.forgotLabel,
-                  color: focusedField === "password" ? "#7c6ff7" : "#9ca3af",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#7c6ff7")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = focusedField === "password" ? "#7c6ff7" : "#9ca3af")}
-              >
-                Forgot password?
-              </span>
-              
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={styles.eyeToggle}
-                tabIndex="-1"
-              >
-                {showPassword ? (
-                  <FiEyeOff size={18} color="#9ca3af" />
-                ) : (
-                  <FiEye size={18} color="#9ca3af" />
-                )}
-              </button>
-            </div>
-  
-            {/* Sign In Button (Primary Gradient Accent) */}
-            <motion.button
-              type="submit"
-              disabled={loading || loadingGoogle}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              style={styles.submitBtn}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "linear-gradient(135deg, #8b7eff, #bba4ff)";
-                e.currentTarget.style.boxShadow = "0 0 25px rgba(124, 111, 247, 0.4)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "linear-gradient(135deg, #7c6ff7, #a78bfa)";
-                e.currentTarget.style.boxShadow = "0 0 20px rgba(124, 111, 247, 0.2)";
-              }}
-            >
-              {loading ? (
-                <div style={styles.loaderContainer}>
-                  <div style={styles.spinner}></div>
-                  <span>Signing in...</span>
-                </div>
-              ) : (
-                "Log in"
-              )}
-            </motion.button>
-          </form>
-  
-          {/* Social Sign-in Separator */}
-          <div style={styles.separatorContainer}>
-            <div style={styles.separatorLine}></div>
-            <span style={styles.separatorText}>or</span>
-            <div style={styles.separatorLine}></div>
-          </div>
-  
-          {/* Google Sign In Button */}
-          <motion.button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={loading || loadingGoogle}
-            whileHover={{ scale: 1.02, backgroundColor: "#1e1e36" }}
-            whileTap={{ scale: 0.98 }}
-            style={styles.googleBtn}
-          >
-            {loadingGoogle ? (
-              <div style={styles.loaderContainer}>
-                <div style={styles.spinner}></div>
-                <span>Connecting...</span>
-              </div>
-            ) : (
-              <>
-                <FcGoogle size={20} />
-                <span>Log in with Google</span>
-              </>
-            )}
-          </motion.button>
-  
-          {/* Signup Redirection Link */}
-          <div style={styles.footerLinkContainer}>
-            <span style={styles.footerText}>Don't have an account? </span>
-            <span
-              onClick={() => navigate("/signup")}
-              style={styles.signupLink}
-              onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-              onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-            >
-              Sign up
-            </span>
-          </div>
-        </motion.div>
+    <div className="login-page">
+      <div className="login-container">
+
+        <div className="logo">
+          <span>NN</span>
+        </div>
+
+        <h1>Welcome Back </h1>
+
+        <p className="description">
+          Sign in to access your notes, organize your thoughts,
+          and continue where you left off.
+        </p>
+
+        <form className="login-form">
+          <label>Email</label>
+          <input
+            type="email"
+            placeholder="Enter your email"
+          />
+
+          <label>Password</label>
+          <input
+            type="password"
+            placeholder="Enter your password"
+          />
+
+          <button type="submit">
+            Sign In
+          </button>
+        </form>
+
+        <p className="footer-text">
+          Don't have an account?
+          <a href="/signup"> Sign up</a>
+        </p>
+
       </div>
     </div>
   );

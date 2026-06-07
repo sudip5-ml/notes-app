@@ -1,9 +1,4 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiEye, FiEyeOff } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
-
+ import "../css/Signup.css"
 function Signup() {
   const navigate = useNavigate();
   
