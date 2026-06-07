@@ -1,17 +1,34 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+﻿import React, { useState } from 'react'
 
 function Dashboard() {
-  const navigate = useNavigate()
   const [notes, setNotes] = useState([
-    { id: 1, title: 'My First Note', content: 'This is my first note on NoteNest! Welcome to your personal notes space.', date: '2083-01-29', favorite: false },
-    { id: 2, title: 'Study Notes', content: 'React is a frontend library built by Facebook. It uses components to build UIs.', date: '2083-01-29', favorite: false },
-    { id: 3, title: 'Project Ideas', content: 'Build a notes app using React and Node.js. Add login, search and delete features.', date: '2083-01-29', favorite: false },
+    {
+      id: 1,
+      title: 'Welcome to NoteNest',
+      content: 'Create notes, mark favorites, and keep everything organized in one place.',
+      date: '2026-06-06',
+      favorite: true,
+      trash: false,
+    },
+    {
+      id: 2,
+      title: 'Team meeting notes',
+      content: 'Review the latest features, prioritize tasks, and follow up on blockers after the standup.',
+      date: '2026-06-05',
+      favorite: false,
+      trash: false,
+    },
+    {
+      id: 3,
+      title: 'Research ideas',
+      content: 'Collect inspiration, write quick summaries, and pin the notes you want to return to later.',
+      date: '2026-06-04',
+      favorite: false,
+      trash: false,
+    },
   ])
 
-  const [trash, setTrash] = useState([])
-  const [selected, setSelected] = useState(null)
+  const [selected, setSelected] = useState(notes[0] || null)
   const [search, setSearch] = useState('')
   const [activeNav, setActiveNav] = useState('All Notes')
   const [showNewNote, setShowNewNote] = useState(false)
@@ -21,476 +38,497 @@ function Dashboard() {
   const [editTitle, setEditTitle] = useState('')
   const [editContent, setEditContent] = useState('')
 
-  // ── Filtered notes based on active nav and search ──
-  const getVisibleNotes = () => {
-    if (activeNav === 'Favorites') return notes.filter(n => n.favorite)
-    if (activeNav === 'Trash') return trash
-    return notes.filter(n =>
-      n.title.toLowerCase().includes(search.toLowerCase()) ||
-      n.content.toLowerCase().includes(search.toLowerCase())
-    )
-  }
+  const visibleNotes = notes.filter(note => {
+    if (activeNav === 'Favorites') return note.favorite && !note.trash
+    if (activeNav === 'Trash') return note.trash
+    return !note.trash
+  }).filter(note => {
+    const query = search.toLowerCase()
+    if (!query) return true
+    return note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query)
+  })
 
-  // ── Add note ──
-  const addNote = () => {
-    if (newTitle.trim()) {
-      const note = {
-        id: Date.now(),
-        title: newTitle,
-        content: newContent,
-        date: new Date().toLocaleDateString(),
-        favorite: false
-      }
-      setNotes([note, ...notes])
-      setNewTitle('')
-      setNewContent('')
-      setShowNewNote(false)
-    }
-  }
-
-  // ── Delete note → move to trash ──
-  const deleteNote = (id) => {
-    const note = notes.find(n => n.id === id)
-    setTrash([note, ...trash])
-    setNotes(notes.filter(n => n.id !== id))
-    if (selected?.id === id) setSelected(null)
-  }
-
-  // ── Restore from trash ──
-  const restoreNote = (id) => {
-    const note = trash.find(n => n.id === id)
-    setNotes([note, ...notes])
-    setTrash(trash.filter(n => n.id !== id))
-    if (selected?.id === id) setSelected(null)
-  }
-
-  // ── Permanently delete from trash ──
-  const permanentDelete = (id) => {
-    setTrash(trash.filter(n => n.id !== id))
-    if (selected?.id === id) setSelected(null)
-  }
-
-  // ── Toggle favorite ──
-  const toggleFavorite = (id) => {
-    setNotes(notes.map(n =>
-      n.id === id ? { ...n, favorite: !n.favorite } : n
-    ))
-    if (selected?.id === id) {
-      setSelected({ ...selected, favorite: !selected.favorite })
-    }
-  }
-
-  // ── Save edit ──
-  const saveEdit = () => {
-    setNotes(notes.map(n =>
-      n.id === selected.id ? { ...n, title: editTitle, content: editContent } : n
-    ))
-    setSelected({ ...selected, title: editTitle, content: editContent })
+  const selectNote = note => {
+    setSelected(note)
+    setShowNewNote(false)
     setEditMode(false)
   }
 
-  const visibleNotes = getVisibleNotes()
+  const addNote = () => {
+    if (!newTitle.trim()) return
+    const note = {
+      id: Date.now(),
+      title: newTitle.trim(),
+      content: newContent.trim() || 'Start writing your note here...',
+      date: new Date().toLocaleDateString(),
+      favorite: false,
+      trash: false,
+    }
+    setNotes([note, ...notes])
+    setSelected(note)
+    setActiveNav('All Notes')
+    setShowNewNote(false)
+    setNewTitle('')
+    setNewContent('')
+  }
+
+  const toggleTrash = id => {
+    setNotes(prevNotes => prevNotes.map(note => note.id === id ? { ...note, trash: !note.trash } : note))
+    if (selected?.id === id) setSelected(null)
+  }
+
+  const restoreNote = id => {
+    setNotes(prevNotes => {
+      const updated = prevNotes.map(note => note.id === id ? { ...note, trash: false } : note)
+      if (selected?.id === id) {
+        setSelected(updated.find(note => note.id === id))
+      }
+      return updated
+    })
+  }
+
+  const deleteNotePermanently = id => {
+    setNotes(prevNotes => prevNotes.filter(note => note.id !== id))
+    if (selected?.id === id) setSelected(null)
+  }
+
+  const toggleFavorite = id => {
+    setNotes(prevNotes => prevNotes.map(note => note.id === id ? { ...note, favorite: !note.favorite } : note))
+    if (selected?.id === id) setSelected(prev => ({ ...prev, favorite: !prev.favorite }))
+  }
+
+  const saveEdit = () => {
+    if (!selected) return
+    setNotes(notes.map(note => note.id === selected.id ? { ...note, title: editTitle.trim(), content: editContent.trim() } : note))
+    setSelected({ ...selected, title: editTitle.trim(), content: editContent.trim() })
+    setEditMode(false)
+  }
+
+  const noteCount = notes.filter(note => !note.trash).length
+  const favoriteCount = notes.filter(note => note.favorite && !note.trash).length
+  const trashCount = notes.filter(note => note.trash).length
 
   return (
-    <div style={{
-      display: 'flex', height: '100vh',
-      background: '#0f0f1a', color: '#ffffff',
-      fontFamily: 'Arial, sans-serif', overflow: 'hidden'
-    }}>
-
-      {/* ── SIDEBAR ── */}
-      <div style={{
-        width: '240px', minWidth: '240px',
-        background: '#13131f',
-        borderRight: '1px solid #1e1e3a',
-        display: 'flex', flexDirection: 'column',
-        padding: '20px 12px'
-      }}>
-
-        {/* Logo */}
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          gap: '10px', marginBottom: '28px', paddingLeft: '8px'
-        }}>
-          <span style={{
-            background: 'linear-gradient(135deg, #7c6ff7, #a78bfa)',
-            borderRadius: '8px', padding: '4px 8px',
-            fontSize: '14px', fontWeight: '900', color: 'white',
-            boxShadow: '0 0 15px rgba(124,111,247,0.4)'
-          }}>NN</span>
-          <span style={{ fontWeight: '800', fontSize: '16px' }}>NoteNest</span>
+    <div style={styles.page}>
+      <aside style={styles.sidebar}>
+        <div>
+          <div style={styles.logo}>NoteNest</div>
+          <p style={styles.subtext}>A simple notes workspace.</p>
         </div>
 
-        {/* New Note Button */}
-        <button
-          onClick={() => { setShowNewNote(true); setActiveNav('All Notes'); setSelected(null) }}
-          onMouseEnter={e => e.currentTarget.style.background = '#6355e0'}
-          onMouseLeave={e => e.currentTarget.style.background = '#7c6ff7'}
-          style={{
-            width: '100%', padding: '10px',
-            background: '#7c6ff7', color: 'white',
-            border: 'none', borderRadius: '8px',
-            cursor: 'pointer', fontWeight: '700',
-            fontSize: '13px', marginBottom: '20px',
-            transition: 'background 0.2s'
-          }}>
+        <div style={styles.navGroup}>
+          {[
+            { label: 'All Notes', count: noteCount },
+            { label: 'Favorites', count: favoriteCount },
+            { label: 'Trash', count: trashCount },
+          ].map(item => (
+            <button
+              type="button"
+              key={item.label}
+              onClick={() => { setActiveNav(item.label); setSelected(null); setShowNewNote(false) }}
+              style={{
+                ...styles.navButton,
+                ...(activeNav === item.label ? styles.navButtonActive : {}),
+              }}
+            >
+              <span>{item.label}</span>
+              <span style={styles.navCount}>{item.count}</span>
+            </button>
+          ))}
+        </div>
+
+        <button type="button" onClick={() => { setShowNewNote(true); setSelected(null); setEditMode(false) }} style={styles.primaryButton}>
           + New Note
         </button>
+      </aside>
 
-        {/* Nav Items */}
-        {[
-          { icon: '📝', label: 'All Notes', count: notes.length },
-          { icon: '⭐', label: 'Favorites', count: notes.filter(n => n.favorite).length },
-          { icon: '🗑️', label: 'Trash', count: trash.length },
-        ].map((item, i) => (
-          <div key={i}
-            onClick={() => { setActiveNav(item.label); setSelected(null) }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(124,111,247,0.1)'}
-            onMouseLeave={e => e.currentTarget.style.background = activeNav === item.label ? 'rgba(124,111,247,0.15)' : 'transparent'}
-            style={{
-              display: 'flex', alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 12px', borderRadius: '8px',
-              cursor: 'pointer', marginBottom: '4px',
-              background: activeNav === item.label ? 'rgba(124,111,247,0.15)' : 'transparent',
-              color: activeNav === item.label ? '#7c6ff7' : '#6b7280',
-              transition: 'all 0.2s'
-            }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span>{item.icon}</span>
-              <span style={{ fontSize: '14px', fontWeight: '500' }}>{item.label}</span>
-            </div>
-            {item.count > 0 && (
-              <span style={{
-                fontSize: '11px', background: 'rgba(124,111,247,0.2)',
-                color: '#7c6ff7', borderRadius: '10px', padding: '2px 7px'
-              }}>{item.count}</span>
-            )}
-          </div>
-        ))}
-
-        {/* Bottom User */}
-        <div style={{
-          marginTop: 'auto',
-          borderTop: '1px solid #1e1e3a',
-          paddingTop: '16px',
-          display: 'flex', alignItems: 'center', gap: '10px'
-        }}>
-          <div style={{
-            width: '34px', height: '34px', borderRadius: '50%',
-            background: 'linear-gradient(135deg, #7c6ff7, #a78bfa)',
-            display: 'flex', alignItems: 'center',
-            justifyContent: 'center', fontSize: '14px',
-            fontWeight: 'bold', flexShrink: 0
-          }}>S</div>
+      <main style={styles.main}>
+        <div style={styles.topBar}>
           <div>
-            <div style={{ fontSize: '13px', fontWeight: '600' }}>Sudip Neupane</div>
-            <div style={{ fontSize: '11px', color: '#6b7280', cursor: 'pointer' }}
-              onClick={() => navigate('/')}>
-              ← Back to Home
-            </div>
+            <h1 style={styles.title}>{activeNav}</h1>
+            <p style={styles.description}>Search, create, and manage your notes in one clean view.</p>
           </div>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search notes..."
+            style={styles.search}
+          />
         </div>
-      </div>
 
-      {/* ── MAIN CONTENT ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-
-        {/* Top Bar */}
-        <div style={{
-          padding: '16px 28px',
-          borderBottom: '1px solid #1e1e3a',
-          display: 'flex', alignItems: 'center', gap: '16px'
-        }}>
-          {selected ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
-              <button onClick={() => { setSelected(null); setEditMode(false) }} style={{
-                background: 'transparent', border: 'none',
-                color: '#7c6ff7', cursor: 'pointer',
-                fontSize: '14px', fontWeight: '600'
-              }}>← Back</button>
-              <span style={{ color: '#3a3a5a', fontSize: '13px' }}>{activeNav} / {selected.title}</span>
+        <div style={styles.contentGrid}>
+          <section style={styles.listPanel}>
+            <div style={styles.panelHeader}>
+              <span>Notes</span>
+              <span>{visibleNotes.length}</span>
             </div>
-          ) : (
-            <>
-              <h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0, minWidth: 'fit-content' }}>
-                {activeNav}
-              </h2>
-              {activeNav !== 'Trash' && (
-                <input
-                  placeholder="🔍 Search notes..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
+
+            <div style={styles.noteList}>
+              {visibleNotes.length === 0 ? (
+                <div style={styles.emptyState}>No notes found.</div>
+              ) : visibleNotes.map(note => (
+                <button
+                  key={note.id}
+                  type="button"
+                  onClick={() => selectNote(note)}
                   style={{
-                    flex: 1, padding: '9px 16px', borderRadius: '8px',
-                    border: '1px solid #1e1e3a', background: '#13131f',
-                    color: 'white', fontSize: '14px', outline: 'none'
+                    ...styles.noteItem,
+                    ...(selected?.id === note.id ? styles.noteItemActive : {}),
                   }}
-                  onFocus={e => e.target.style.borderColor = '#7c6ff7'}
-                  onBlur={e => e.target.style.borderColor = '#1e1e3a'}
-                />
-              )}
-            </>
-          )}
-        </div>
+                >
+                  <div>
+                    <div style={styles.noteTitle}>{note.title}</div>
+                    <div style={styles.noteSnippet}>{note.content.slice(0, 70)}...</div>
+                  </div>
+                  <div style={styles.noteMeta}>
+                    {note.favorite ? '⭐' : ''}
+                    <span>{note.date}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
 
-        {/* Content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '28px' }}>
-
-          {/* New Note Form */}
-          <AnimatePresence>
-            {showNewNote && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                style={{
-                  background: '#13131f', borderRadius: '12px',
-                  padding: '20px', marginBottom: '24px',
-                  border: '1px solid rgba(124,111,247,0.4)'
-                }}>
+          <section style={styles.detailPanel}>
+            {showNewNote ? (
+              <div style={styles.editorCard}>
+                <div style={styles.editorHeader}>
+                  <h2 style={styles.editorTitle}>New note</h2>
+                </div>
                 <input
-                  placeholder="Note title..."
                   value={newTitle}
                   onChange={e => setNewTitle(e.target.value)}
-                  style={{
-                    width: '100%', padding: '10px 0',
-                    background: 'transparent', border: 'none',
-                    borderBottom: '1px solid #1e1e3a',
-                    color: 'white', fontSize: '18px',
-                    fontWeight: '700', outline: 'none',
-                    marginBottom: '12px', boxSizing: 'border-box'
-                  }}
+                  placeholder="Title"
+                  style={styles.input}
                 />
                 <textarea
-                  placeholder="Write your note here..."
                   value={newContent}
                   onChange={e => setNewContent(e.target.value)}
-                  rows={4}
-                  style={{
-                    width: '100%', padding: '10px 0',
-                    background: 'transparent', border: 'none',
-                    color: '#a0aec0', fontSize: '14px',
-                    outline: 'none', resize: 'none',
-                    lineHeight: '1.8', boxSizing: 'border-box'
-                  }}
+                  placeholder="Write your note..."
+                  style={styles.textarea}
                 />
-                <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                  <button onClick={addNote} style={{
-                    padding: '8px 20px', background: '#7c6ff7',
-                    color: 'white', border: 'none', borderRadius: '6px',
-                    cursor: 'pointer', fontWeight: '600', fontSize: '13px'
-                  }}>Save Note</button>
-                  <button onClick={() => setShowNewNote(false)} style={{
-                    padding: '8px 20px', background: 'transparent',
-                    color: '#6b7280', border: '1px solid #1e1e3a',
-                    borderRadius: '6px', cursor: 'pointer', fontSize: '13px'
-                  }}>Cancel</button>
+                <div style={styles.buttonRow}>
+                  <button type="button" onClick={addNote} style={styles.primaryButton}>Save</button>
+                  <button type="button" onClick={() => setShowNewNote(false)} style={styles.secondaryButton}>Cancel</button>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Selected Note */}
-          <AnimatePresence mode="wait">
-            {selected ? (
-              <motion.div
-                key="note-view"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                style={{ maxWidth: '720px' }}>
+              </div>
+            ) : selected ? (
+              <div style={styles.editorCard}>
+                <div style={styles.editorHeader}>
+                  <div>
+                    <h2 style={styles.editorTitle}>{selected.title}</h2>
+                    <div style={styles.noteInfo}>{selected.date}</div>
+                  </div>
+                  <div style={styles.buttonRow}>
+                    <button type="button" onClick={() => { setEditMode(true); setEditTitle(selected.title); setEditContent(selected.content) }} style={styles.secondaryButton}>Edit</button>
+                    {activeNav === 'Trash' ? (
+                      <>
+                        <button type="button" onClick={() => restoreNote(selected.id)} style={styles.secondaryButton}>Restore</button>
+                        <button type="button" onClick={() => deleteNotePermanently(selected.id)} style={styles.primaryButton}>Delete permanently</button>
+                      </>
+                    ) : (
+                      <button type="button" onClick={() => toggleTrash(selected.id)} style={styles.secondaryButton}>Move to trash</button>
+                    )}
+                  </div>
+                </div>
 
                 {editMode ? (
                   <>
                     <input
                       value={editTitle}
                       onChange={e => setEditTitle(e.target.value)}
-                      style={{
-                        width: '100%', fontSize: '36px', fontWeight: '800',
-                        background: 'transparent', border: 'none',
-                        borderBottom: '1px solid #1e1e3a', color: 'white',
-                        outline: 'none', marginBottom: '20px',
-                        boxSizing: 'border-box', paddingBottom: '8px'
-                      }}
+                      placeholder="Title"
+                      style={styles.input}
                     />
                     <textarea
                       value={editContent}
                       onChange={e => setEditContent(e.target.value)}
-                      rows={12}
-                      style={{
-                        width: '100%', background: 'transparent',
-                        border: '1px solid #1e1e3a', borderRadius: '8px',
-                        color: '#a0aec0', fontSize: '16px', padding: '16px',
-                        outline: 'none', resize: 'none', lineHeight: '1.9',
-                        boxSizing: 'border-box'
-                      }}
+                      placeholder="Edit your note..."
+                      style={styles.textarea}
                     />
-                    <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-                      <button onClick={saveEdit} style={{
-                        padding: '8px 20px', background: '#7c6ff7',
-                        color: 'white', border: 'none', borderRadius: '6px',
-                        cursor: 'pointer', fontWeight: '600', fontSize: '13px'
-                      }}>Save Changes</button>
-                      <button onClick={() => setEditMode(false)} style={{
-                        padding: '8px 20px', background: 'transparent',
-                        color: '#6b7280', border: '1px solid #1e1e3a',
-                        borderRadius: '6px', cursor: 'pointer', fontSize: '13px'
-                      }}>Cancel</button>
+                    <div style={styles.buttonRow}>
+                      <button type="button" onClick={saveEdit} style={styles.primaryButton}>Save</button>
+                      <button type="button" onClick={() => setEditMode(false)} style={styles.secondaryButton}>Cancel</button>
                     </div>
                   </>
                 ) : (
                   <>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <h1 style={{ fontSize: '36px', fontWeight: '800', lineHeight: '1.2', margin: 0 }}>
-                        {selected.title}
-                      </h1>
-                      <span
-                        onClick={() => toggleFavorite(selected.id)}
-                        style={{ fontSize: '24px', cursor: 'pointer' }}
-                        title={selected.favorite ? 'Remove from favorites' : 'Add to favorites'}>
-                        {selected.favorite ? '⭐' : '☆'}
-                      </span>
+                    <p style={styles.noteBody}>{selected.content}</p>
+                    <div style={styles.actionRow}>
+                      <button type="button" onClick={() => toggleFavorite(selected.id)} style={styles.favoriteButton}>
+                        {selected.favorite ? 'Unfavorite' : 'Mark favorite'}
+                      </button>
                     </div>
-                    <p style={{ fontSize: '12px', color: '#3a3a5a', marginBottom: '32px' }}>
-                      {selected.date}
-                    </p>
-                    <p style={{
-                      fontSize: '16px', color: '#a0aec0',
-                      lineHeight: '1.9', whiteSpace: 'pre-wrap'
-                    }}>{selected.content}</p>
-
-                    {activeNav !== 'Trash' && (
-                      <div style={{ display: 'flex', gap: '10px', marginTop: '40px' }}>
-                        <button
-                          onClick={() => { setEditMode(true); setEditTitle(selected.title); setEditContent(selected.content) }}
-                          style={{
-                            padding: '8px 20px', background: 'transparent',
-                            color: '#7c6ff7', border: '1px solid #7c6ff7',
-                            borderRadius: '6px', cursor: 'pointer', fontSize: '13px'
-                          }}>✏️ Edit</button>
-                        <button
-                          onClick={() => deleteNote(selected.id)}
-                          style={{
-                            padding: '8px 20px', background: 'transparent',
-                            color: '#ef4444', border: '1px solid #ef4444',
-                            borderRadius: '6px', cursor: 'pointer', fontSize: '13px'
-                          }}>🗑️ Delete</button>
-                      </div>
-                    )}
-
-                    {activeNav === 'Trash' && (
-                      <div style={{ display: 'flex', gap: '10px', marginTop: '40px' }}>
-                        <button
-                          onClick={() => restoreNote(selected.id)}
-                          style={{
-                            padding: '8px 20px', background: 'transparent',
-                            color: '#22c55e', border: '1px solid #22c55e',
-                            borderRadius: '6px', cursor: 'pointer', fontSize: '13px'
-                          }}>↩️ Restore</button>
-                        <button
-                          onClick={() => permanentDelete(selected.id)}
-                          style={{
-                            padding: '8px 20px', background: 'transparent',
-                            color: '#ef4444', border: '1px solid #ef4444',
-                            borderRadius: '6px', cursor: 'pointer', fontSize: '13px'
-                          }}>❌ Delete Forever</button>
-                      </div>
-                    )}
                   </>
                 )}
-              </motion.div>
+              </div>
             ) : (
-              // Notes Grid
-              <motion.div
-                key="notes-grid"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignContent: 'flex-start' }}>
-
-                {visibleNotes.length === 0 ? (
-                  <div style={{ color: '#6b7280', fontSize: '14px', marginTop: '40px', width: '100%', textAlign: 'center' }}>
-                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>
-                      {activeNav === 'Favorites' ? '⭐' : activeNav === 'Trash' ? '🗑️' : '📭'}
-                    </div>
-                    {activeNav === 'Favorites' ? 'No favorite notes yet!' :
-                      activeNav === 'Trash' ? 'Trash is empty!' :
-                        'No notes found. Create your first note!'}
-                  </div>
-                ) : (
-                  visibleNotes.map((note, i) => (
-                    <motion.div
-                      key={note.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      onClick={() => setSelected(note)}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.borderColor = 'rgba(124,111,247,0.5)'
-                        e.currentTarget.style.transform = 'translateY(-4px)'
-                        e.currentTarget.style.boxShadow = '0 0 20px rgba(124,111,247,0.15)'
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.borderColor = '#1e1e3a'
-                        e.currentTarget.style.transform = 'translateY(0px)'
-                        e.currentTarget.style.boxShadow = 'none'
-                      }}
-                      style={{
-                        background: '#13131f', borderRadius: '12px',
-                        padding: '20px', width: '260px',
-                        border: '1px solid #1e1e3a', cursor: 'pointer',
-                        transition: 'all 0.2s ease'
-                      }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                        <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#ffffff', margin: 0 }}>
-                          {note.title}
-                        </h3>
-                        <span style={{ fontSize: '14px' }}>{note.favorite ? '⭐' : ''}</span>
-                      </div>
-                      <p style={{ fontSize: '13px', color: '#6b7280', lineHeight: '1.6', marginBottom: '16px' }}>
-                        {note.content.slice(0, 80)}...
-                      </p>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '11px', color: '#3a3a5a' }}>{note.date}</span>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          {activeNav !== 'Trash' && (
-                            <span
-                              onClick={e => { e.stopPropagation(); toggleFavorite(note.id) }}
-                              style={{ fontSize: '13px', cursor: 'pointer', color: '#3a3a5a' }}
-                              onMouseEnter={e => e.target.style.color = '#f59e0b'}
-                              onMouseLeave={e => e.target.style.color = note.favorite ? '#f59e0b' : '#3a3a5a'}>
-                              {note.favorite ? '⭐' : '☆'}
-                            </span>
-                          )}
-                          {activeNav === 'Trash' ? (
-                            <span
-                              onClick={e => { e.stopPropagation(); restoreNote(note.id) }}
-                              style={{ fontSize: '13px', cursor: 'pointer', color: '#22c55e' }}>
-                              ↩️
-                            </span>
-                          ) : (
-                            <span
-                              onClick={e => { e.stopPropagation(); deleteNote(note.id) }}
-                              style={{ fontSize: '13px', cursor: 'pointer', color: '#3a3a5a' }}
-                              onMouseEnter={e => e.target.style.color = '#ef4444'}
-                              onMouseLeave={e => e.target.style.color = '#3a3a5a'}>
-                              🗑️
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))
-                )}
-              </motion.div>
+              <div style={styles.emptyPanel}>
+                <h2 style={{ margin: 0 }}>Pick a note</h2>
+                <p style={{ marginTop: '10px', color: '#a1a1bb' }}>Select a note from the list or create a new one.</p>
+              </div>
             )}
-          </AnimatePresence>
+          </section>
         </div>
-      </div>
+      </main>
     </div>
   )
+}
+
+const styles = {
+  page: {
+    display: 'grid',
+    gridTemplateColumns: '220px 1fr',
+    minHeight: '100vh',
+    background: '#0f0f1d',
+    color: '#edf2ff',
+    fontFamily: 'Inter, system-ui, sans-serif',
+  },
+  sidebar: {
+    background: '#111126',
+    borderRight: '1px solid #1d1d34',
+    padding: '28px 20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24px',
+  },
+  logo: {
+    fontSize: '22px',
+    fontWeight: '800',
+  },
+  subtext: {
+    marginTop: '8px',
+    color: '#a1a1bb',
+    fontSize: '13px',
+    lineHeight: '1.6',
+  },
+  navGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  navButton: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    padding: '12px 14px',
+    borderRadius: '12px',
+    border: 'none',
+    background: 'transparent',
+    color: '#d4d4f8',
+    cursor: 'pointer',
+    textAlign: 'left',
+    fontSize: '14px',
+  },
+  navButtonActive: {
+    background: '#1f1f3a',
+    color: '#ffffff',
+  },
+  navCount: {
+    background: '#1f1f3a',
+    borderRadius: '999px',
+    padding: '4px 8px',
+    fontSize: '12px',
+  },
+  primaryButton: {
+    border: 'none',
+    borderRadius: '12px',
+    padding: '12px 16px',
+    background: 'linear-gradient(135deg, #7c6ff7, #a78bfa)',
+    color: '#ffffff',
+    fontWeight: '600',
+    cursor: 'pointer',
+  },
+  secondaryButton: {
+    border: '1px solid #3f3f68',
+    borderRadius: '12px',
+    padding: '12px 16px',
+    background: 'transparent',
+    color: '#edf2ff',
+    cursor: 'pointer',
+  },
+  main: {
+    padding: '28px 30px',
+    overflowY: 'auto',
+  },
+  topBar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    gap: '20px',
+    marginBottom: '24px',
+  },
+  title: {
+    margin: 0,
+    fontSize: '30px',
+    fontWeight: '800',
+  },
+  description: {
+    margin: '8px 0 0',
+    color: '#a1a1bb',
+    fontSize: '14px',
+  },
+  search: {
+    width: '260px',
+    padding: '12px 16px',
+    borderRadius: '14px',
+    border: '1px solid #2b2b4b',
+    background: '#111126',
+    color: '#edf2ff',
+    outline: 'none',
+  },
+  contentGrid: {
+    display: 'grid',
+    gridTemplateColumns: '320px 1fr',
+    gap: '24px',
+    minHeight: 'calc(100vh - 120px)',
+  },
+  listPanel: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  panelHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '14px 16px',
+    borderRadius: '16px',
+    background: '#111126',
+    color: '#c7c7d4',
+    fontSize: '13px',
+  },
+  noteList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+    overflowY: 'auto',
+    paddingRight: '4px',
+  },
+  noteItem: {
+    width: '100%',
+    padding: '14px 16px',
+    borderRadius: '16px',
+    border: '1px solid #1f1f3a',
+    background: '#12122c',
+    color: '#edf2ff',
+    textAlign: 'left',
+    cursor: 'pointer',
+    display: 'grid',
+    gridTemplateColumns: '1fr auto',
+    gap: '12px',
+  },
+  noteItemActive: {
+    borderColor: '#7c6ff7',
+    background: '#17173d',
+  },
+  noteTitle: {
+    fontSize: '15px',
+    fontWeight: '700',
+    marginBottom: '6px',
+  },
+  noteSnippet: {
+    fontSize: '13px',
+    color: '#a1a1bb',
+    lineHeight: '1.6',
+  },
+  noteMeta: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    fontSize: '12px',
+    color: '#9ca3af',
+  },
+  detailPanel: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  editorCard: {
+    background: '#111126',
+    borderRadius: '24px',
+    padding: '24px',
+    boxShadow: '0 30px 80px rgba(0, 0, 0, 0.25)',
+    minHeight: '400px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '18px',
+  },
+  editorHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '16px',
+    alignItems: 'flex-start',
+  },
+  editorTitle: {
+    margin: 0,
+    fontSize: '22px',
+    fontWeight: '800',
+  },
+  noteInfo: {
+    marginTop: '8px',
+    fontSize: '13px',
+    color: '#9ca3af',
+  },
+  input: {
+    width: '100%',
+    padding: '14px 16px',
+    borderRadius: '16px',
+    border: '1px solid #1f1f3a',
+    background: '#12122c',
+    color: '#edf2ff',
+    outline: 'none',
+    fontSize: '14px',
+  },
+  textarea: {
+    width: '100%',
+    minHeight: '220px',
+    padding: '14px 16px',
+    borderRadius: '16px',
+    border: '1px solid #1f1f3a',
+    background: '#12122c',
+    color: '#edf2ff',
+    outline: 'none',
+    resize: 'vertical',
+    fontSize: '14px',
+    lineHeight: '1.7',
+  },
+  buttonRow: {
+    display: 'flex',
+    gap: '12px',
+    flexWrap: 'wrap',
+  },
+  noteBody: {
+    color: '#d1d5db',
+    lineHeight: '1.8',
+    fontSize: '15px',
+  },
+  actionRow: {
+    display: 'flex',
+    gap: '12px',
+  },
+  favoriteButton: {
+    border: '1px solid #3f3f68',
+    borderRadius: '12px',
+    padding: '12px 16px',
+    background: 'transparent',
+    color: '#edf2ff',
+    cursor: 'pointer',
+  },
+  emptyState: {
+    padding: '18px 16px',
+    borderRadius: '16px',
+    background: '#111126',
+    textAlign: 'center',
+    color: '#9ca3af',
+  },
+  emptyPanel: {
+    padding: '32px',
+    borderRadius: '24px',
+    background: '#111126',
+    color: '#d1d5db',
+  },
 }
 
 export default Dashboard
