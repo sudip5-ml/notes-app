@@ -1,14 +1,19 @@
- import "../css/Signup.css"
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import { FcGoogle } from "react-icons/fc";
+import "../css/Signup.css";
+
 function Signup() {
   const navigate = useNavigate();
-  
-  // Form State
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     password: "",
   });
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,7 +26,7 @@ function Signup() {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setError(""); // Clear error on change
+    setError("");
   };
 
   const validateForm = () => {
@@ -75,7 +80,6 @@ function Signup() {
         throw new Error(data.error || "Signup failed");
       }
 
-      // Save token and user details to localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
@@ -93,15 +97,17 @@ function Signup() {
   const handleGoogleSignup = () => {
     setLoadingGoogle(true);
     setError("");
-    
-    // Simulate Google Sign-In with a temporary mock token
+
     setTimeout(() => {
       localStorage.setItem("token", "google_demo_mock_token_12345");
-      localStorage.setItem("user", JSON.stringify({
-        id: 9999,
-        username: "Google User",
-        email: "google@gmail.com"
-      }));
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: 9999,
+          username: "Google User",
+          email: "google@gmail.com",
+        })
+      );
 
       setLoadingGoogle(false);
       setSuccess(true);
@@ -113,11 +119,9 @@ function Signup() {
 
   return (
     <div style={styles.pageContainer}>
-      {/* Background Glows (from design.md tokens) */}
       <div style={styles.glowLeft}></div>
       <div style={styles.glowRight}></div>
 
-      {/* Main Container */}
       <div style={styles.container}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -125,18 +129,13 @@ function Signup() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           style={styles.card}
         >
-          {/* Official NoteNest brand logo */}
-          <div 
-            onClick={() => navigate("/")} 
-            style={styles.logoContainer}
-          >
+          <div onClick={() => navigate("/")} style={styles.logoContainer}>
             <span style={styles.logoBadge}>NN</span>
             <span style={styles.logoText}>NoteNest</span>
           </div>
 
           <h2 style={styles.title}>Create new account</h2>
 
-          {/* Validation Alert */}
           <AnimatePresence mode="wait">
             {error && (
               <motion.div
@@ -159,15 +158,14 @@ function Signup() {
             )}
           </AnimatePresence>
 
-          <form onSubmit={handleSignup} style={styles.form}>
-            {/* Full Name Input Group */}
+          <form onSubmit={handleSignup} style={styles.form} noValidate>
             <div style={styles.inputGroup}>
               <input
                 type="text"
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleChange}
-                placeholder="Jamie Davis"
+                placeholder="umesh budha"
                 style={{
                   ...styles.inputField,
                   borderColor: focusedField === "fullName" ? "#7c6ff7" : "#1e1e3a",
@@ -188,14 +186,13 @@ function Signup() {
               </label>
             </div>
 
-            {/* Email Input Group */}
             <div style={styles.inputGroup}>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="designer@example.com"
+                placeholder="umesh@example.com"
                 style={{
                   ...styles.inputField,
                   borderColor: focusedField === "email" ? "#7c6ff7" : "#1e1e3a",
@@ -216,7 +213,6 @@ function Signup() {
               </label>
             </div>
 
-            {/* Password Input Group */}
             <div style={styles.inputGroup}>
               <input
                 type={showPassword ? "text" : "password"}
@@ -228,7 +224,7 @@ function Signup() {
                   ...styles.inputField,
                   borderColor: focusedField === "password" ? "#7c6ff7" : "#1e1e3a",
                   boxShadow: focusedField === "password" ? "0 0 10px rgba(124, 111, 247, 0.15)" : "none",
-                  paddingRight: "46px", // Space for eye toggle
+                  paddingRight: "46px",
                 }}
                 onFocus={() => setFocusedField("password")}
                 onBlur={() => setFocusedField("")}
@@ -243,7 +239,7 @@ function Signup() {
               >
                 Password
               </label>
-              
+
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -258,7 +254,6 @@ function Signup() {
               </button>
             </div>
 
-            {/* Sign Up Button (Primary Gradient Accent) */}
             <motion.button
               type="submit"
               disabled={loading || loadingGoogle}
@@ -285,14 +280,12 @@ function Signup() {
             </motion.button>
           </form>
 
-          {/* Social Sign-up Separator */}
           <div style={styles.separatorContainer}>
             <div style={styles.separatorLine}></div>
             <span style={styles.separatorText}>or</span>
             <div style={styles.separatorLine}></div>
           </div>
 
-          {/* Google Sign Up Button */}
           <motion.button
             type="button"
             onClick={handleGoogleSignup}
@@ -314,7 +307,6 @@ function Signup() {
             )}
           </motion.button>
 
-          {/* Login Redirection Link */}
           <div style={styles.footerLinkContainer}>
             <span style={styles.footerText}>Already have an account? </span>
             <span
@@ -332,13 +324,12 @@ function Signup() {
   );
 }
 
-// Styles conforming to e:\notes-app\frontend\design.md tokens
 const styles = {
   pageContainer: {
     position: "relative",
     width: "100%",
     minHeight: "100vh",
-    backgroundColor: "#0f0f1a", // design.md base
+    backgroundColor: "#0f0f1a",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -351,7 +342,7 @@ const styles = {
     left: "-15%",
     width: "700px",
     height: "700px",
-    background: "radial-gradient(circle, rgba(124,111,247,0.12) 0%, transparent 70%)", // design.md glow
+    background: "radial-gradient(circle, rgba(124,111,247,0.12) 0%, transparent 70%)",
     borderRadius: "50%",
     filter: "blur(60px)",
     pointerEvents: "none",
@@ -363,7 +354,7 @@ const styles = {
     right: "-15%",
     width: "700px",
     height: "700px",
-    background: "radial-gradient(circle, rgba(167,139,250,0.08) 0%, transparent 70%)", // design.md glow
+    background: "radial-gradient(circle, rgba(167,139,250,0.08) 0%, transparent 70%)",
     borderRadius: "50%",
     filter: "blur(60px)",
     pointerEvents: "none",
@@ -379,42 +370,42 @@ const styles = {
   card: {
     width: "100%",
     maxWidth: "420px",
-    backgroundColor: "#131324", // design.md card surface
-    border: "1px solid #1e1e3a", // design.md border accent
+    backgroundColor: "#131324",
+    border: "1px solid #1e1e3a",
     borderRadius: "16px",
     padding: "40px 32px 36px 32px",
-    boxShadow: "0 30px 100px rgba(0, 0, 0, 0.6), 0 0 50px rgba(124, 111, 247, 0.15)", // design.md shadow
+    boxShadow: "0 30px 100px rgba(0, 0, 0, 0.6), 0 0 50px rgba(124, 111, 247, 0.15)",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
   },
   logoContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    cursor: 'pointer',
-    marginBottom: '32px',
-    userSelect: 'none'
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    cursor: "pointer",
+    marginBottom: "32px",
+    userSelect: "none",
   },
   logoBadge: {
-    background: 'linear-gradient(135deg, #7c6ff7, #a78bfa)',
-    borderRadius: '10px',
-    padding: '6px 10px',
-    fontSize: '16px',
-    fontWeight: '900',
-    color: 'white',
-    boxShadow: '0 0 15px rgba(124,111,247,0.6), 0 0 30px rgba(124,111,247,0.3)',
-    border: '1px solid rgba(167,139,250,0.5)'
+    background: "linear-gradient(135deg, #7c6ff7, #a78bfa)",
+    borderRadius: "10px",
+    padding: "6px 10px",
+    fontSize: "16px",
+    fontWeight: "900",
+    color: "white",
+    boxShadow: "0 0 15px rgba(124,111,247,0.6), 0 0 30px rgba(124,111,247,0.3)",
+    border: "1px solid rgba(167,139,250,0.5)",
   },
   logoText: {
-    fontWeight: '800',
-    fontSize: '18px',
-    color: '#ffffff'
+    fontWeight: "800",
+    fontSize: "18px",
+    color: "#ffffff",
   },
   title: {
     fontSize: "24px",
     fontWeight: "600",
-    color: "#ffffff", // design.md primary text
+    color: "#ffffff",
     marginBottom: "32px",
     textAlign: "center",
     letterSpacing: "-0.5px",
@@ -434,7 +425,7 @@ const styles = {
     left: "12px",
     top: "0",
     transform: "translateY(-50%)",
-    backgroundColor: "#131324", // matches card bg to mask border
+    backgroundColor: "#131324",
     padding: "0 6px",
     fontSize: "12px",
     fontWeight: "500",
@@ -467,7 +458,7 @@ const styles = {
   },
   submitBtn: {
     width: "100%",
-    background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", // design.md primary gradient
+    background: "linear-gradient(135deg, #7c6ff7, #a78bfa)",
     color: "#ffffff",
     border: "none",
     borderRadius: "8px",
@@ -495,12 +486,12 @@ const styles = {
   },
   separatorText: {
     fontSize: "13px",
-    color: "#6b7280", // design.md low-emphasis text
+    color: "#6b7280",
     padding: "0 12px",
   },
   googleBtn: {
     width: "100%",
-    backgroundColor: "#18182c", // darker secondary background
+    backgroundColor: "#18182c",
     border: "1px solid #1e1e3a",
     borderRadius: "8px",
     padding: "14px",
@@ -520,17 +511,17 @@ const styles = {
     textAlign: "center",
   },
   footerText: {
-    color: "#6b7280", // design.md low-emphasis text
+    color: "#6b7280",
   },
   loginLink: {
-    color: "#7c6ff7", // design.md primary accent
+    color: "#7c6ff7",
     fontWeight: "600",
     cursor: "pointer",
   },
   errorAlert: {
     width: "100%",
     backgroundColor: "rgba(239, 68, 68, 0.1)",
-    border: "1px solid #ef4444", // design.md utility alert
+    border: "1px solid #ef4444",
     borderRadius: "6px",
     padding: "10px 14px",
     color: "#ef4444",
@@ -567,19 +558,12 @@ const styles = {
   },
 };
 
-// Insert inline keyframes for spinner animation
-const styleSheet = document.styleSheets[0] || (() => {
+// Inject keyframes once (safe against missing stylesheets)
+if (typeof document !== "undefined" && !document.getElementById("signup-spin-kf")) {
   const style = document.createElement("style");
+  style.id = "signup-spin-kf";
+  style.innerHTML = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
   document.head.appendChild(style);
-  return style.sheet;
-})();
-try {
-  styleSheet.insertRule(`
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  `, styleSheet.cssRules.length);
-} catch (e) {}
+}
 
 export default Signup;
