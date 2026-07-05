@@ -165,7 +165,7 @@ function Signup() {
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleChange}
-                placeholder="umesh budha"
+                placeholder="Enter your Full Name"
                 style={{
                   ...styles.inputField,
                   borderColor: focusedField === "fullName" ? "#7c6ff7" : "#1e1e3a",
@@ -192,7 +192,7 @@ function Signup() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="umesh@example.com"
+                placeholder="your@example.com"
                 style={{
                   ...styles.inputField,
                   borderColor: focusedField === "email" ? "#7c6ff7" : "#1e1e3a",
