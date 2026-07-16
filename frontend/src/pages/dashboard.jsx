@@ -1,534 +1,572 @@
-﻿import React, { useState } from 'react'
+﻿import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FiSearch,
+  FiStar,
+  FiTrash2,
+  FiPlus,
+  FiFileText,
+  FiX,
+  FiTrendingUp,
+  FiZap,
+} from "react-icons/fi";
+import { fetchNotes, createNote, updateNote, deleteNote } from "../utils/api";
+
+const mapNote = (n) => ({
+  id: n._id,
+  title: n.title,
+  content: n.content,
+  date: (n.created_at || n.updated_at || "").split("T")[0],
+  favorite: n.favorite,
+  trashed: n.is_trash,
+});
 
 function Dashboard() {
-  const [notes, setNotes] = useState([
-    {
-      id: 1,
-      title: 'Welcome to NoteNest',
-      content: 'Create notes, mark favorites, and keep everything organized in one place.',
-      date: '2026-06-06',
-      favorite: true,
-      trash: false,
-    },
-    {
-      id: 2,
-      title: 'Team meeting notes',
-      content: 'Review the latest features, prioritize tasks, and follow up on blockers after the standup.',
-      date: '2026-06-05',
-      favorite: false,
-      trash: false,
-    },
-    {
-      id: 3,
-      title: 'Research ideas',
-      content: 'Collect inspiration, write quick summaries, and pin the notes you want to return to later.',
-      date: '2026-06-04',
-      favorite: false,
-      trash: false,
-    },
-  ])
+  const navigate = useNavigate();
 
-  const [selected, setSelected] = useState(notes[0] || null)
-  const [search, setSearch] = useState('')
-  const [activeNav, setActiveNav] = useState('All Notes')
-  const [showNewNote, setShowNewNote] = useState(false)
-  const [newTitle, setNewTitle] = useState('')
-  const [newContent, setNewContent] = useState('')
-  const [editMode, setEditMode] = useState(false)
-  const [editTitle, setEditTitle] = useState('')
-  const [editContent, setEditContent] = useState('')
+  const [activeNav, setActiveNav] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const visibleNotes = notes.filter(note => {
-    if (activeNav === 'Favorites') return note.favorite && !note.trash
-    if (activeNav === 'Trash') return note.trash
-    return !note.trash
-  }).filter(note => {
-    const query = search.toLowerCase()
-    if (!query) return true
-    return note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query)
-  })
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState(null);
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftContent, setDraftContent] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  const selectNote = note => {
-    setSelected(note)
-    setShowNewNote(false)
-    setEditMode(false)
-  }
+  const [notes, setNotes] = useState([]);
 
-  const addNote = () => {
-    if (!newTitle.trim()) return
-    const note = {
-      id: Date.now(),
-      title: newTitle.trim(),
-      content: newContent.trim() || 'Start writing your note here...',
-      date: new Date().toLocaleDateString(),
-      favorite: false,
-      trash: false,
-    }
-    setNotes([note, ...notes])
-    setSelected(note)
-    setActiveNav('All Notes')
-    setShowNewNote(false)
-    setNewTitle('')
-    setNewContent('')
-  }
+  const user = JSON.parse(localStorage.getItem("user")) || { username: "Guest" };
 
-  const toggleTrash = id => {
-    setNotes(prevNotes => prevNotes.map(note => note.id === id ? { ...note, trash: !note.trash } : note))
-    if (selected?.id === id) setSelected(null)
-  }
+  const visibleNotes = notes.filter((n) => {
+    if (activeNav === "favorites") return n.favorite && !n.trashed;
+    if (activeNav === "trash") return n.trashed;
+    return !n.trashed;
+  });
 
-  const restoreNote = id => {
-    setNotes(prevNotes => {
-      const updated = prevNotes.map(note => note.id === id ? { ...note, trash: false } : note)
-      if (selected?.id === id) {
-        setSelected(updated.find(note => note.id === id))
+  const filteredNotes = visibleNotes.filter(
+    (note) =>
+      note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      note.content.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const activeCount = notes.filter((n) => !n.trashed).length;
+  const favoriteCount = notes.filter((n) => n.favorite && !n.trashed).length;
+  const trashCount = notes.filter((n) => n.trashed).length;
+
+  const weeklyActivity = useMemo(() => {
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const counts = {};
+    days.forEach((d) => (counts[d] = 0));
+
+    notes.forEach((note) => {
+      const d = new Date(note.date);
+      if (!isNaN(d)) {
+        const dayLabel = days[(d.getDay() + 6) % 7];
+        counts[dayLabel] += 1;
       }
-      return updated
-    })
-  }
+    });
 
-  const deleteNotePermanently = id => {
-    setNotes(prevNotes => prevNotes.filter(note => note.id !== id))
-    if (selected?.id === id) setSelected(null)
-  }
+    const max = Math.max(1, ...Object.values(counts));
+    return days.map((day) => ({
+      day,
+      count: counts[day],
+      pct: Math.round((counts[day] / max) * 100),
+    }));
+  }, [notes]);
 
-  const toggleFavorite = id => {
-    setNotes(prevNotes => prevNotes.map(note => note.id === id ? { ...note, favorite: !note.favorite } : note))
-    if (selected?.id === id) setSelected(prev => ({ ...prev, favorite: !prev.favorite }))
-  }
+  const tips = [
+    "Star a note to pin it under Favorites for quick access.",
+    "Deleted notes go to Trash first — nothing is lost instantly.",
+    "Use the search bar to jump straight to any note by title or content.",
+    "Keep note titles short; the preview line does the rest of the work.",
+  ];
+  const [tipIndex, setTipIndex] = useState(0);
 
-  const saveEdit = () => {
-    if (!selected) return
-    setNotes(notes.map(note => note.id === selected.id ? { ...note, title: editTitle.trim(), content: editContent.trim() } : note))
-    setSelected({ ...selected, title: editTitle.trim(), content: editContent.trim() })
-    setEditMode(false)
-  }
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTipIndex((i) => (i + 1) % tips.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const noteCount = notes.filter(note => !note.trash).length
-  const favoriteCount = notes.filter(note => note.favorite && !note.trash).length
-  const trashCount = notes.filter(note => note.trash).length
+  useEffect(() => {
+    const loadNotes = async () => {
+      try {
+        const data = await fetchNotes();
+        setNotes(data.map(mapNote));
+      } catch (err) {
+        console.error("Failed to load notes:", err);
+      }
+    };
+    loadNotes();
+  }, []);
+
+  const openNewNoteEditor = () => {
+    setEditingNote(null);
+    setDraftTitle("");
+    setDraftContent("");
+    setIsEditorOpen(true);
+  };
+
+  const openEditNoteEditor = (note) => {
+    setEditingNote(note);
+    setDraftTitle(note.title);
+    setDraftContent(note.content);
+    setIsEditorOpen(true);
+  };
+
+  const closeEditor = () => {
+    setIsEditorOpen(false);
+    setEditingNote(null);
+    setDraftTitle("");
+    setDraftContent("");
+  };
+
+  const saveNote = async () => {
+    if (!draftTitle.trim()) return;
+    setSaving(true);
+
+    try {
+      if (editingNote) {
+        const updated = await updateNote(editingNote.id, {
+          title: draftTitle,
+          content: draftContent,
+        });
+        setNotes(notes.map((n) => (n.id === editingNote.id ? mapNote(updated) : n)));
+      } else {
+        const created = await createNote({
+          title: draftTitle,
+          content: draftContent,
+        });
+        setNotes([mapNote(created), ...notes]);
+      }
+      closeEditor();
+    } catch (err) {
+      console.error("Failed to save note:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleFavorite = async (id) => {
+    const note = notes.find((n) => n.id === id);
+    if (!note) return;
+    try {
+      const updated = await updateNote(id, { favorite: !note.favorite });
+      setNotes(notes.map((n) => (n.id === id ? mapNote(updated) : n)));
+    } catch (err) {
+      console.error("Failed to toggle favorite:", err);
+    }
+  };
+
+  const moveToTrash = async (id) => {
+    try {
+      const updated = await updateNote(id, { is_trash: true });
+      setNotes(notes.map((n) => (n.id === id ? mapNote(updated) : n)));
+    } catch (err) {
+      console.error("Failed to move to trash:", err);
+    }
+  };
+
+  const restoreFromTrash = async (id) => {
+    try {
+      const updated = await updateNote(id, { is_trash: false });
+      setNotes(notes.map((n) => (n.id === id ? mapNote(updated) : n)));
+    } catch (err) {
+      console.error("Failed to restore note:", err);
+    }
+  };
+
+  const deletePermanently = async (id) => {
+    try {
+      await deleteNote(id);
+      setNotes(notes.filter((n) => n.id !== id));
+    } catch (err) {
+      console.error("Failed to delete note:", err);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
+  const goHome = () => {
+    navigate("/");
+  };
+
+  const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "U");
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") closeEditor();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
 
   return (
-    <div style={styles.page}>
+    <div style={styles.pageContainer}>
       <aside style={styles.sidebar}>
-        <div>
-          <div style={styles.logo}>NoteNest</div>
-          <p style={styles.subtext}>A simple notes workspace.</p>
+        <div style={styles.logoContainer}>
+          <span style={styles.logoBadge}>NN</span>
+          <span style={styles.logoText}>NoteNest</span>
         </div>
 
-        <div style={styles.navGroup}>
-          {[
-            { label: 'All Notes', count: noteCount },
-            { label: 'Favorites', count: favoriteCount },
-            { label: 'Trash', count: trashCount },
-          ].map(item => (
-            <button
-              type="button"
-              key={item.label}
-              onClick={() => { setActiveNav(item.label); setSelected(null); setShowNewNote(false) }}
-              style={{
-                ...styles.navButton,
-                ...(activeNav === item.label ? styles.navButtonActive : {}),
-              }}
-            >
-              <span>{item.label}</span>
-              <span style={styles.navCount}>{item.count}</span>
-            </button>
-          ))}
-        </div>
+        <motion.button
+          style={styles.newNoteBtn}
+          onClick={openNewNoteEditor}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+        >
+          <FiPlus size={16} />
+          New Note
+        </motion.button>
 
-        <button type="button" onClick={() => { setShowNewNote(true); setSelected(null); setEditMode(false) }} style={styles.primaryButton}>
-          + New Note
-        </button>
+        <nav style={styles.navList}>
+          <div
+            style={{ ...styles.navItem, ...(activeNav === "all" ? styles.navItemActive : {}) }}
+            onClick={() => setActiveNav("all")}
+          >
+            <span style={styles.navItemLabel}>
+              <FiFileText size={16} />
+              All Notes
+            </span>
+            <span style={styles.navBadge}>{activeCount}</span>
+          </div>
+
+          <div
+            style={{ ...styles.navItem, ...(activeNav === "favorites" ? styles.navItemActive : {}) }}
+            onClick={() => setActiveNav("favorites")}
+          >
+            <span style={styles.navItemLabel}>
+              <FiStar size={16} color="#facc15" />
+              Favorites
+            </span>
+          </div>
+
+          <div
+            style={{ ...styles.navItem, ...(activeNav === "trash" ? styles.navItemActive : {}) }}
+            onClick={() => setActiveNav("trash")}
+          >
+            <span style={styles.navItemLabel}>
+              <FiTrash2 size={16} />
+              Trash
+            </span>
+          </div>
+        </nav>
+
+        <div style={styles.userFooter}>
+          <div style={styles.userInfo} onClick={handleLogout} title="Click to log out">
+            <div style={styles.avatar}>{getInitial(user.username)}</div>
+            <div style={styles.userName}>{user.username || user.fullName}</div>
+          </div>
+          <div style={styles.logoutText} onClick={goHome}>
+            ← Back to Home
+          </div>
+        </div>
       </aside>
 
       <main style={styles.main}>
-        <div style={styles.topBar}>
-          <div>
-            <h1 style={styles.title}>{activeNav}</h1>
-            <p style={styles.description}>Search, create, and manage your notes in one clean view.</p>
-          </div>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search notes..."
-            style={styles.search}
-          />
-        </div>
+        <div style={styles.contentLayout}>
+          <div style={styles.notesColumn}>
+            <div style={styles.topBar}>
+              <h1 style={styles.pageTitle}>
+                {activeNav === "favorites"
+                  ? "Favorites"
+                  : activeNav === "trash"
+                  ? "Trash"
+                  : "All Notes"}
+              </h1>
 
-        <div style={styles.contentGrid}>
-          <section style={styles.listPanel}>
-            <div style={styles.panelHeader}>
-              <span>Notes</span>
-              <span>{visibleNotes.length}</span>
-            </div>
-
-            <div style={styles.noteList}>
-              {visibleNotes.length === 0 ? (
-                <div style={styles.emptyState}>No notes found.</div>
-              ) : visibleNotes.map(note => (
-                <button
-                  key={note.id}
-                  type="button"
-                  onClick={() => selectNote(note)}
-                  style={{
-                    ...styles.noteItem,
-                    ...(selected?.id === note.id ? styles.noteItemActive : {}),
-                  }}
-                >
-                  <div>
-                    <div style={styles.noteTitle}>{note.title}</div>
-                    <div style={styles.noteSnippet}>{note.content.slice(0, 70)}...</div>
-                  </div>
-                  <div style={styles.noteMeta}>
-                    {note.favorite ? '⭐' : ''}
-                    <span>{note.date}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section style={styles.detailPanel}>
-            {showNewNote ? (
-              <div style={styles.editorCard}>
-                <div style={styles.editorHeader}>
-                  <h2 style={styles.editorTitle}>New note</h2>
-                </div>
-                <input
-                  value={newTitle}
-                  onChange={e => setNewTitle(e.target.value)}
-                  placeholder="Title"
-                  style={styles.input}
-                />
-                <textarea
-                  value={newContent}
-                  onChange={e => setNewContent(e.target.value)}
-                  placeholder="Write your note..."
-                  style={styles.textarea}
-                />
-                <div style={styles.buttonRow}>
-                  <button type="button" onClick={addNote} style={styles.primaryButton}>Save</button>
-                  <button type="button" onClick={() => setShowNewNote(false)} style={styles.secondaryButton}>Cancel</button>
+              <div style={styles.searchRow}>
+                <div style={styles.searchWrapper}>
+                  <FiSearch size={16} color="#6b7280" />
+                  <input
+                    type="text"
+                    placeholder="Search notes..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={styles.searchInput}
+                  />
                 </div>
               </div>
-            ) : selected ? (
-              <div style={styles.editorCard}>
-                <div style={styles.editorHeader}>
-                  <div>
-                    <h2 style={styles.editorTitle}>{selected.title}</h2>
-                    <div style={styles.noteInfo}>{selected.date}</div>
-                  </div>
-                  <div style={styles.buttonRow}>
-                    <button type="button" onClick={() => { setEditMode(true); setEditTitle(selected.title); setEditContent(selected.content) }} style={styles.secondaryButton}>Edit</button>
-                    {activeNav === 'Trash' ? (
-                      <>
-                        <button type="button" onClick={() => restoreNote(selected.id)} style={styles.secondaryButton}>Restore</button>
-                        <button type="button" onClick={() => deleteNotePermanently(selected.id)} style={styles.primaryButton}>Delete permanently</button>
-                      </>
-                    ) : (
-                      <button type="button" onClick={() => toggleTrash(selected.id)} style={styles.secondaryButton}>Move to trash</button>
-                    )}
-                  </div>
-                </div>
+            </div>
 
-                {editMode ? (
-                  <>
-                    <input
-                      value={editTitle}
-                      onChange={e => setEditTitle(e.target.value)}
-                      placeholder="Title"
-                      style={styles.input}
-                    />
-                    <textarea
-                      value={editContent}
-                      onChange={e => setEditContent(e.target.value)}
-                      placeholder="Edit your note..."
-                      style={styles.textarea}
-                    />
-                    <div style={styles.buttonRow}>
-                      <button type="button" onClick={saveEdit} style={styles.primaryButton}>Save</button>
-                      <button type="button" onClick={() => setEditMode(false)} style={styles.secondaryButton}>Cancel</button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p style={styles.noteBody}>{selected.content}</p>
-                    <div style={styles.actionRow}>
-                      <button type="button" onClick={() => toggleFavorite(selected.id)} style={styles.favoriteButton}>
-                        {selected.favorite ? 'Unfavorite' : 'Mark favorite'}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+            {filteredNotes.length === 0 ? (
+              <motion.div
+                style={styles.emptyState}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                {activeNav === "trash" ? "Trash is empty." : "No notes found."}
+              </motion.div>
             ) : (
-              <div style={styles.emptyPanel}>
-                <h2 style={{ margin: 0 }}>Pick a note</h2>
-                <p style={{ marginTop: '10px', color: '#a1a1bb' }}>Select a note from the list or create a new one.</p>
+              <div style={styles.notesGrid}>
+                <AnimatePresence>
+                  {filteredNotes.map((note, index) => (
+                    <motion.div
+                      key={note.id}
+                      layout
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.25, delay: index * 0.03 }}
+                      whileHover={{ y: -3, borderColor: "#7c6ff7" }}
+                      style={styles.noteCard}
+                      onClick={() => activeNav !== "trash" && openEditNoteEditor(note)}
+                    >
+                      <h3 style={styles.noteTitle}>{note.title}</h3>
+                      <p style={styles.notePreview}>{note.content}</p>
+
+                      <div style={styles.noteFooter}>
+                        <span style={styles.noteDate}>{note.date}</span>
+                        <div style={styles.noteActions}>
+                          {activeNav === "trash" ? (
+                            <>
+                              <button
+                                style={styles.iconBtn}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  restoreFromTrash(note.id);
+                                }}
+                                title="Restore"
+                              >
+                                ↺
+                              </button>
+                              <button
+                                style={styles.iconBtn}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deletePermanently(note.id);
+                                }}
+                                title="Delete forever"
+                              >
+                                <FiTrash2 size={14} color="#ef4444" />
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <motion.button
+                                whileTap={{ scale: 1.4 }}
+                                style={styles.iconBtn}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFavorite(note.id);
+                                }}
+                              >
+                                <FiStar
+                                  size={14}
+                                  color={note.favorite ? "#facc15" : "#6b7280"}
+                                  fill={note.favorite ? "#facc15" : "none"}
+                                />
+                              </motion.button>
+                              <button
+                                style={styles.iconBtn}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  moveToTrash(note.id);
+                                }}
+                              >
+                                <FiTrash2 size={14} color="#6b7280" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             )}
-          </section>
+          </div>
+
+          <aside style={styles.rightPanel}>
+            <div style={styles.statsGrid}>
+              <div style={styles.statCard}>
+                <div style={styles.statValue}>{activeCount}</div>
+                <div style={styles.statLabel}>Total Notes</div>
+              </div>
+              <div style={styles.statCard}>
+                <div style={{ ...styles.statValue, color: "#facc15" }}>{favoriteCount}</div>
+                <div style={styles.statLabel}>Favorites</div>
+              </div>
+              <div style={styles.statCard}>
+                <div style={{ ...styles.statValue, color: "#f87171" }}>{trashCount}</div>
+                <div style={styles.statLabel}>In Trash</div>
+              </div>
+            </div>
+
+            <div style={styles.panelCard}>
+              <div style={styles.panelHeader}>
+                <FiTrendingUp size={15} color="#7c6ff7" />
+                <span style={styles.panelHeaderText}>Weekly Activity</span>
+              </div>
+              <div style={styles.barChart}>
+                {weeklyActivity.map((d) => (
+                  <div key={d.day} style={styles.barColumn}>
+                    <div style={styles.barTrack}>
+                      <motion.div
+                        style={styles.barFill}
+                        initial={{ height: 0 }}
+                        animate={{ height: `${Math.max(d.pct, 4)}%` }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                      />
+                    </div>
+                    <span style={styles.barLabel}>{d.day}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={styles.panelCard}>
+              <div style={styles.panelHeader}>
+                <FiZap size={15} color="#facc15" />
+                <span style={styles.panelHeaderText}>Quick Tip</span>
+              </div>
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={tipIndex}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.3 }}
+                  style={styles.tipText}
+                >
+                  {tips[tipIndex]}
+                </motion.p>
+              </AnimatePresence>
+            </div>
+          </aside>
         </div>
       </main>
+
+      <AnimatePresence>
+        {isEditorOpen && (
+          <motion.div
+            style={styles.modalOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeEditor}
+          >
+            <motion.div
+              style={styles.modalCard}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={styles.modalHeader}>
+                <h2 style={styles.modalTitle}>{editingNote ? "Edit Note" : "New Note"}</h2>
+                <button style={styles.closeBtn} onClick={closeEditor}>
+                  <FiX size={20} color="#9ca3af" />
+                </button>
+              </div>
+
+              <input
+                type="text"
+                placeholder="Note title"
+                value={draftTitle}
+                onChange={(e) => setDraftTitle(e.target.value)}
+                style={styles.titleInput}
+                autoFocus
+              />
+
+              <textarea
+                placeholder="Start writing..."
+                value={draftContent}
+                onChange={(e) => setDraftContent(e.target.value)}
+                style={styles.contentTextarea}
+              />
+
+              <div style={styles.modalFooter}>
+                <button style={styles.cancelBtn} onClick={closeEditor}>
+                  Cancel
+                </button>
+                <motion.button
+                  whileHover={{ scale: draftTitle.trim() ? 1.02 : 1 }}
+                  whileTap={{ scale: draftTitle.trim() ? 0.97 : 1 }}
+                  style={{
+                    ...styles.saveBtn,
+                    opacity: draftTitle.trim() ? 1 : 0.5,
+                    cursor: draftTitle.trim() ? "pointer" : "not-allowed",
+                  }}
+                  onClick={saveNote}
+                  disabled={!draftTitle.trim() || saving}
+                >
+                  {saving ? "Saving..." : editingNote ? "Save changes" : "Create note"}
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
-  )
+  );
 }
 
 const styles = {
-  page: {
-    display: 'grid',
-    gridTemplateColumns: '220px 1fr',
-    minHeight: '100vh',
-    background: '#0f0f1d',
-    color: '#edf2ff',
-    fontFamily: 'Inter, system-ui, sans-serif',
-  },
-  sidebar: {
-    background: '#111126',
-    borderRight: '1px solid #1d1d34',
-    padding: '28px 20px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-  },
-  logo: {
-    fontSize: '22px',
-    fontWeight: '800',
-  },
-  subtext: {
-    marginTop: '8px',
-    color: '#a1a1bb',
-    fontSize: '13px',
-    lineHeight: '1.6',
-  },
-  navGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-  },
-  navButton: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    padding: '12px 14px',
-    borderRadius: '12px',
-    border: 'none',
-    background: 'transparent',
-    color: '#d4d4f8',
-    cursor: 'pointer',
-    textAlign: 'left',
-    fontSize: '14px',
-  },
-  navButtonActive: {
-    background: '#1f1f3a',
-    color: '#ffffff',
-  },
-  navCount: {
-    background: '#1f1f3a',
-    borderRadius: '999px',
-    padding: '4px 8px',
-    fontSize: '12px',
-  },
-  primaryButton: {
-    border: 'none',
-    borderRadius: '12px',
-    padding: '12px 16px',
-    background: 'linear-gradient(135deg, #7c6ff7, #a78bfa)',
-    color: '#ffffff',
-    fontWeight: '600',
-    cursor: 'pointer',
-  },
-  secondaryButton: {
-    border: '1px solid #3f3f68',
-    borderRadius: '12px',
-    padding: '12px 16px',
-    background: 'transparent',
-    color: '#edf2ff',
-    cursor: 'pointer',
-  },
-  main: {
-    padding: '28px 30px',
-    overflowY: 'auto',
-  },
-  topBar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    gap: '20px',
-    marginBottom: '24px',
-  },
-  title: {
-    margin: 0,
-    fontSize: '30px',
-    fontWeight: '800',
-  },
-  description: {
-    margin: '8px 0 0',
-    color: '#a1a1bb',
-    fontSize: '14px',
-  },
-  search: {
-    width: '260px',
-    padding: '12px 16px',
-    borderRadius: '14px',
-    border: '1px solid #2b2b4b',
-    background: '#111126',
-    color: '#edf2ff',
-    outline: 'none',
-  },
-  contentGrid: {
-    display: 'grid',
-    gridTemplateColumns: '320px 1fr',
-    gap: '24px',
-    minHeight: 'calc(100vh - 120px)',
-  },
-  listPanel: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  panelHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '14px 16px',
-    borderRadius: '16px',
-    background: '#111126',
-    color: '#c7c7d4',
-    fontSize: '13px',
-  },
-  noteList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-    overflowY: 'auto',
-    paddingRight: '4px',
-  },
-  noteItem: {
-    width: '100%',
-    padding: '14px 16px',
-    borderRadius: '16px',
-    border: '1px solid #1f1f3a',
-    background: '#12122c',
-    color: '#edf2ff',
-    textAlign: 'left',
-    cursor: 'pointer',
-    display: 'grid',
-    gridTemplateColumns: '1fr auto',
-    gap: '12px',
-  },
-  noteItemActive: {
-    borderColor: '#7c6ff7',
-    background: '#17173d',
-  },
-  noteTitle: {
-    fontSize: '15px',
-    fontWeight: '700',
-    marginBottom: '6px',
-  },
-  noteSnippet: {
-    fontSize: '13px',
-    color: '#a1a1bb',
-    lineHeight: '1.6',
-  },
-  noteMeta: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    fontSize: '12px',
-    color: '#9ca3af',
-  },
-  detailPanel: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  editorCard: {
-    background: '#111126',
-    borderRadius: '24px',
-    padding: '24px',
-    boxShadow: '0 30px 80px rgba(0, 0, 0, 0.25)',
-    minHeight: '400px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '18px',
-  },
-  editorHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: '16px',
-    alignItems: 'flex-start',
-  },
-  editorTitle: {
-    margin: 0,
-    fontSize: '22px',
-    fontWeight: '800',
-  },
-  noteInfo: {
-    marginTop: '8px',
-    fontSize: '13px',
-    color: '#9ca3af',
-  },
-  input: {
-    width: '100%',
-    padding: '14px 16px',
-    borderRadius: '16px',
-    border: '1px solid #1f1f3a',
-    background: '#12122c',
-    color: '#edf2ff',
-    outline: 'none',
-    fontSize: '14px',
-  },
-  textarea: {
-    width: '100%',
-    minHeight: '220px',
-    padding: '14px 16px',
-    borderRadius: '16px',
-    border: '1px solid #1f1f3a',
-    background: '#12122c',
-    color: '#edf2ff',
-    outline: 'none',
-    resize: 'vertical',
-    fontSize: '14px',
-    lineHeight: '1.7',
-  },
-  buttonRow: {
-    display: 'flex',
-    gap: '12px',
-    flexWrap: 'wrap',
-  },
-  noteBody: {
-    color: '#d1d5db',
-    lineHeight: '1.8',
-    fontSize: '15px',
-  },
-  actionRow: {
-    display: 'flex',
-    gap: '12px',
-  },
-  favoriteButton: {
-    border: '1px solid #3f3f68',
-    borderRadius: '12px',
-    padding: '12px 16px',
-    background: 'transparent',
-    color: '#edf2ff',
-    cursor: 'pointer',
-  },
-  emptyState: {
-    padding: '18px 16px',
-    borderRadius: '16px',
-    background: '#111126',
-    textAlign: 'center',
-    color: '#9ca3af',
-  },
-  emptyPanel: {
-    padding: '32px',
-    borderRadius: '24px',
-    background: '#111126',
-    color: '#d1d5db',
-  },
-}
+  pageContainer: { display: "flex", width: "100%", minHeight: "100vh", backgroundColor: "#0f0f1a", fontFamily: "'Outfit', sans-serif" },
+  sidebar: { width: "260px", backgroundColor: "#131324", borderRight: "1px solid #1e1e3a", display: "flex", flexDirection: "column", padding: "24px 16px", flexShrink: 0 },
+  logoContainer: { display: "flex", alignItems: "center", gap: "10px", marginBottom: "28px", padding: "0 8px" },
+  logoBadge: { background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", borderRadius: "8px", padding: "6px 9px", fontSize: "14px", fontWeight: "900", color: "white" },
+  logoText: { fontWeight: "700", fontSize: "17px", color: "#ffffff" },
+  newNoteBtn: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", color: "#ffffff", border: "none", borderRadius: "8px", padding: "12px", fontSize: "14px", fontWeight: "600", cursor: "pointer", marginBottom: "24px", boxShadow: "0 0 20px rgba(124, 111, 247, 0.2)" },
+  navList: { display: "flex", flexDirection: "column", gap: "4px", flex: 1 },
+  navItem: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 12px", borderRadius: "8px", cursor: "pointer", color: "#9ca3af", fontSize: "14px", fontWeight: "500" },
+  navItemActive: { backgroundColor: "#7c6ff7", color: "#ffffff" },
+  navItemLabel: { display: "flex", alignItems: "center", gap: "10px" },
+  navBadge: { backgroundColor: "rgba(255,255,255,0.2)", borderRadius: "10px", padding: "1px 8px", fontSize: "12px", fontWeight: "600" },
+  userFooter: { display: "flex", flexDirection: "column", gap: "8px", padding: "12px 8px", borderTop: "1px solid #1e1e3a", marginTop: "12px" },
+  userInfo: { display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" },
+  avatar: { width: "34px", height: "34px", borderRadius: "50%", background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "14px", color: "#ffffff", flexShrink: 0 },
+  userName: { fontSize: "14px", fontWeight: "600", color: "#ffffff" },
+  logoutText: { fontSize: "12px", color: "#6b7280", cursor: "pointer", marginLeft: "44px" },
+  main: { flex: 1, padding: "28px 36px", overflowY: "auto" },
+  contentLayout: { display: "flex", gap: "28px", alignItems: "flex-start" },
+  notesColumn: { flex: 1, minWidth: 0 },
+  topBar: { display: "flex", flexDirection: "column", alignItems: "center", gap: "18px", marginBottom: "28px" },
+  pageTitle: { fontSize: "22px", fontWeight: "700", color: "#ffffff", margin: 0, alignSelf: "flex-start" },
+  searchRow: { display: "flex", justifyContent: "center", width: "100%" },
+  searchWrapper: { display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#131324", border: "1px solid #1e1e3a", borderRadius: "8px", padding: "10px 14px", width: "100%", maxWidth: "420px" },
+  searchInput: { background: "transparent", border: "none", outline: "none", color: "#ffffff", fontSize: "14px", width: "100%" },
+  notesGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "20px" },
+  noteCard: { backgroundColor: "#131324", border: "1px solid #1e1e3a", borderRadius: "12px", padding: "20px", cursor: "pointer" },
+  noteTitle: { fontSize: "16px", fontWeight: "600", color: "#ffffff", margin: "0 0 10px 0" },
+  notePreview: { fontSize: "13px", color: "#9ca3af", lineHeight: "1.5", margin: "0 0 20px 0", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" },
+  noteFooter: { display: "flex", alignItems: "center", justifyContent: "space-between" },
+  noteDate: { fontSize: "12px", color: "#4b5563" },
+  noteActions: { display: "flex", gap: "4px" },
+  iconBtn: { background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center", color: "#9ca3af" },
+  emptyState: { color: "#6b7280", fontSize: "14px", textAlign: "center", padding: "60px 0" },
+  rightPanel: { width: "280px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "18px" },
+  statsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" },
+  statCard: { backgroundColor: "#131324", border: "1px solid #1e1e3a", borderRadius: "10px", padding: "14px 8px", textAlign: "center" },
+  statValue: { fontSize: "20px", fontWeight: "700", color: "#ffffff" },
+  statLabel: { fontSize: "11px", color: "#6b7280", marginTop: "4px" },
+  panelCard: { backgroundColor: "#131324", border: "1px solid #1e1e3a", borderRadius: "12px", padding: "18px" },
+  panelHeader: { display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" },
+  panelHeaderText: { fontSize: "13px", fontWeight: "600", color: "#ffffff" },
+  barChart: { display: "flex", alignItems: "flex-end", justifyContent: "space-between", height: "100px", gap: "6px" },
+  barColumn: { display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", flex: 1 },
+  barTrack: { width: "100%", height: "80px", display: "flex", alignItems: "flex-end", backgroundColor: "#1a1a30", borderRadius: "4px", overflow: "hidden" },
+  barFill: { width: "100%", background: "linear-gradient(180deg, #a78bfa, #7c6ff7)", borderRadius: "4px 4px 0 0" },
+  barLabel: { fontSize: "10px", color: "#6b7280" },
+  tipText: { fontSize: "13px", color: "#9ca3af", lineHeight: "1.6", margin: 0 },
+  modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "20px" },
+  modalCard: { backgroundColor: "#131324", border: "1px solid #1e1e3a", borderRadius: "16px", width: "100%", maxWidth: "560px", padding: "24px", boxShadow: "0 30px 100px rgba(0,0,0,0.6)", display: "flex", flexDirection: "column" },
+  modalHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" },
+  modalTitle: { fontSize: "18px", fontWeight: "600", color: "#ffffff", margin: 0 },
+  closeBtn: { background: "none", border: "none", cursor: "pointer", display: "flex" },
+  titleInput: { backgroundColor: "transparent", border: "1px solid #1e1e3a", borderRadius: "8px", padding: "12px 14px", fontSize: "16px", fontWeight: "600", color: "#ffffff", outline: "none", marginBottom: "12px" },
+  contentTextarea: { backgroundColor: "transparent", border: "1px solid #1e1e3a", borderRadius: "8px", padding: "12px 14px", fontSize: "14px", color: "#ffffff", outline: "none", minHeight: "180px", resize: "vertical", fontFamily: "'Outfit', sans-serif", lineHeight: "1.6", marginBottom: "20px" },
+  modalFooter: { display: "flex", justifyContent: "flex-end", gap: "12px" },
+  cancelBtn: { backgroundColor: "transparent", border: "1px solid #1e1e3a", borderRadius: "8px", padding: "10px 18px", color: "#9ca3af", fontSize: "14px", fontWeight: "600", cursor: "pointer" },
+  saveBtn: { background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", border: "none", borderRadius: "8px", padding: "10px 18px", color: "#ffffff", fontSize: "14px", fontWeight: "600" },
+};
 
-export default Dashboard
+export default Dashboard;

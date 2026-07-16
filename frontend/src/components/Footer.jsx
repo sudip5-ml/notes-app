@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 function Footer() {
   return (
@@ -64,10 +65,26 @@ function Footer() {
             Product
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <a href="#features" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>Features</a>
-            <a href="#pricing" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>Pricing</a>
-            <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>Security</a>
-            <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>Roadmap</a>
+            <a href="#features" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              Features
+            </a>
+            <a href="#pricing" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              Pricing
+            </a>
+            <Link to="/security" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              Security
+            </Link>
+            <Link to="/roadmap" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              Roadmap
+            </Link>
           </div>
         </div>
 
@@ -77,10 +94,42 @@ function Footer() {
             Company
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <a href="#about" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>About</a>
-            <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>Blog</a>
-            <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>Careers</a>
-            <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>Contact</a>
+
+            {/* ✅ About with scroll fix */}
+            <span
+              onClick={() => {
+                window.location.href = '/#about'
+                setTimeout(() => {
+                  document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })
+                }, 100)
+              }}
+              style={{ 
+                color: '#6b7280', 
+                textDecoration: 'none', 
+                fontSize: '14px', 
+                cursor: 'pointer' 
+              }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}
+            >
+              About
+            </span>
+
+            <Link to="/blog" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              Blog
+            </Link>
+            <Link to="/careers" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              Careers
+            </Link>
+            <Link to="/contact" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              Contact
+            </Link>
           </div>
         </div>
 
@@ -90,10 +139,26 @@ function Footer() {
             Resources
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>Help Center</a>
-            <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>Documentation</a>
-            <a href="#faq" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>FAQ</a>
-            <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>Status</a>
+            <Link to="/help" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              Help Center
+            </Link>
+            <Link to="/docs" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              Documentation
+            </Link>
+            <a href="#faq" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              FAQ
+            </a>
+            <Link to="/status" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              Status
+            </Link>
           </div>
         </div>
 
@@ -103,9 +168,21 @@ function Footer() {
             Legal
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>Privacy Policy</a>
-            <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>Terms of Service</a>
-            <a href="#" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#7c6ff7'} onMouseLeave={e => e.target.style.color='#6b7280'}>Cookie Policy</a>
+            <Link to="/privacy" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              Privacy Policy
+            </Link>
+            <Link to="/terms" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              Terms of Service
+            </Link>
+            <Link to="/cookies" style={{ color: '#6b7280', textDecoration: 'none', fontSize: '14px' }}
+              onMouseEnter={e => e.target.style.color='#7c6ff7'}
+              onMouseLeave={e => e.target.style.color='#6b7280'}>
+              Cookie Policy
+            </Link>
           </div>
         </div>
 
@@ -168,7 +245,7 @@ function Footer() {
           © 2026 NoteNest. Built by students at Kathmandu Institute of Technology.
         </p>
         <p style={{ color: '#4b5563', fontSize: '13px', margin: 0 }}>
-          Made with purpose in Nepal
+          Made with purpose in Nepal 🇳🇵
         </p>
       </div>
 

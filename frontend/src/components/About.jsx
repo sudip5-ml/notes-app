@@ -1,7 +1,10 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { Link, useNavigate } from 'react-router-dom'
 
 function About() {
+  const navigate = useNavigate()
+
   return (
     <section id="about" style={{
       padding: '120px 80px',

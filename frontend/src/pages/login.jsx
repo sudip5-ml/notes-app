@@ -1,18 +1,15 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiEye, FiEyeOff } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
+import "../css/login.css";
 
 function Login() {
   const navigate = useNavigate();
-  
-  // Form State
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,7 +22,7 @@ function Login() {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setError(""); // Clear error on change
+    setError("");
   };
 
   const validateForm = () => {
@@ -55,9 +52,7 @@ function Login() {
     try {
       const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
@@ -70,14 +65,11 @@ function Login() {
         throw new Error(data.error || "Login failed");
       }
 
-      // Save token and user details to localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       setSuccess(true);
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1000);
+      setTimeout(() => navigate("/dashboard"), 1000);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -88,239 +80,156 @@ function Login() {
   const handleGoogleLogin = () => {
     setLoadingGoogle(true);
     setError("");
-    
-    // Simulate Google Sign-In with a temporary mock token
+
     setTimeout(() => {
       localStorage.setItem("token", "google_demo_mock_token_12345");
-      localStorage.setItem("user", JSON.stringify({
-        id: 9999,
-        username: "Google User",
-        email: "google@gmail.com"
-      }));
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: 9999,
+          username: "Google User",
+          email: "google@gmail.com",
+        })
+      );
 
       setLoadingGoogle(false);
       setSuccess(true);
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1000);
+      setTimeout(() => navigate("/dashboard"), 1000);
     }, 1200);
   };
 
+  // Helper to combine base input style with focus state
+  const getInputStyle = (field) => ({
+    ...styles.inputField,
+    borderColor: focusedField === field ? "#7c6ff7" : "#1e1e3a",
+    boxShadow:
+      focusedField === field ? "0 0 0 3px rgba(124,111,247,0.15)" : "none",
+  });
+
+  const getLabelStyle = (field, isForgot = false) => ({
+    ...(isForgot ? styles.forgotLabel : styles.inputLabel),
+    color: focusedField === field ? "#7c6ff7" : "#6b7280",
+  });
+
   return (
     <div style={styles.pageContainer}>
-      {/* Background Glows (from design.md tokens) */}
-      <div style={styles.glowLeft}></div>
-      <div style={styles.glowRight}></div>
-  
-      {/* Main Container */}
+      <div style={styles.glowLeft} />
+      <div style={styles.glowRight} />
+
       <div style={styles.container}>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          style={styles.card}
-        >
-          {/* Official NoteNest brand logo */}
-          <div 
-            onClick={() => navigate("/")} 
-            style={styles.logoContainer}
-          >
+        <div style={styles.card}>
+          <div style={styles.logoContainer}>
             <span style={styles.logoBadge}>NN</span>
-            <span style={styles.logoText}>NoteNest</span>
+            <span style={styles.logoText}>Notes</span>
           </div>
-  
-          <h2 style={styles.title}>Log in to your account</h2>
-  
-          {/* Validation Alert */}
-          <AnimatePresence mode="wait">
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                style={styles.errorAlert}
-              >
-                {error}
-              </motion.div>
-            )}
-            {success && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                style={styles.successAlert}
-              >
-                Login successful! Loading dashboard...
-              </motion.div>
-            )}
-          </AnimatePresence>
-  
-          <form onSubmit={handleLogin} style={styles.form}>
-            {/* Email Input Group */}
+
+          <h1 style={styles.title}>Welcome Back</h1>
+
+          {error && <div style={styles.errorAlert}>{error}</div>}
+          {success && (
+            <div style={styles.successAlert}>
+              Login successful! Redirecting...
+            </div>
+          )}
+
+          <form style={styles.form} onSubmit={handleLogin} noValidate>
             <div style={styles.inputGroup}>
+              <label style={getLabelStyle("email")}>Email</label>
               <input
                 type="email"
                 name="email"
+                placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="designer@example.com"
-                style={{
-                  ...styles.inputField,
-                  borderColor: focusedField === "email" ? "#7c6ff7" : "#1e1e3a",
-                  boxShadow: focusedField === "email" ? "0 0 10px rgba(124, 111, 247, 0.15)" : "none",
-                }}
                 onFocus={() => setFocusedField("email")}
                 onBlur={() => setFocusedField("")}
-                disabled={loading || loadingGoogle}
+                style={getInputStyle("email")}
                 autoComplete="email"
               />
-              <label
-                style={{
-                  ...styles.inputLabel,
-                  color: focusedField === "email" ? "#7c6ff7" : "#9ca3af",
-                }}
-              >
-                Email
-              </label>
             </div>
-  
-            {/* Password Input Group with Forgot Password inside border */}
+
             <div style={styles.inputGroup}>
+              <label style={getLabelStyle("password")}>Password</label>
+              <label
+                style={getLabelStyle("forgot", true)}
+                onClick={() => navigate("/forgot-password")}
+              >
+                Forgot?
+              </label>
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
+                placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="password"
-                style={{
-                  ...styles.inputField,
-                  borderColor: focusedField === "password" ? "#7c6ff7" : "#1e1e3a",
-                  boxShadow: focusedField === "password" ? "0 0 10px rgba(124, 111, 247, 0.15)" : "none",
-                  paddingRight: "46px", // Space for eye toggle
-                }}
                 onFocus={() => setFocusedField("password")}
                 onBlur={() => setFocusedField("")}
-                disabled={loading || loadingGoogle}
+                style={getInputStyle("password")}
                 autoComplete="current-password"
               />
-              
-              {/* Left Label */}
-              <label
-                style={{
-                  ...styles.inputLabel,
-                  color: focusedField === "password" ? "#7c6ff7" : "#9ca3af",
-                }}
-              >
-                Password
-              </label>
-  
-              {/* Right Label (Forgot Password) */}
-              <span
-                onClick={() => navigate("/forgot-password")}
-                style={{
-                  ...styles.forgotLabel,
-                  color: focusedField === "password" ? "#7c6ff7" : "#9ca3af",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#7c6ff7")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = focusedField === "password" ? "#7c6ff7" : "#9ca3af")}
-              >
-                Forgot password?
-              </span>
-              
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
                 style={styles.eyeToggle}
-                tabIndex="-1"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? (
-                  <FiEyeOff size={18} color="#9ca3af" />
-                ) : (
-                  <FiEye size={18} color="#9ca3af" />
-                )}
+                {showPassword ? "🙈" : "👁️"}
               </button>
             </div>
-  
-            {/* Sign In Button (Primary Gradient Accent) */}
-            <motion.button
-              type="submit"
-              disabled={loading || loadingGoogle}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              style={styles.submitBtn}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "linear-gradient(135deg, #8b7eff, #bba4ff)";
-                e.currentTarget.style.boxShadow = "0 0 25px rgba(124, 111, 247, 0.4)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "linear-gradient(135deg, #7c6ff7, #a78bfa)";
-                e.currentTarget.style.boxShadow = "0 0 20px rgba(124, 111, 247, 0.2)";
-              }}
-            >
+
+            <button type="submit" style={styles.submitBtn} disabled={loading}>
               {loading ? (
-                <div style={styles.loaderContainer}>
-                  <div style={styles.spinner}></div>
-                  <span>Signing in...</span>
-                </div>
+                <span style={styles.loaderContainer}>
+                  <span style={styles.spinner} />
+                  Signing in...
+                </span>
               ) : (
-                "Log in"
+                "Sign In"
               )}
-            </motion.button>
+            </button>
           </form>
-  
-          {/* Social Sign-in Separator */}
+
           <div style={styles.separatorContainer}>
-            <div style={styles.separatorLine}></div>
-            <span style={styles.separatorText}>or</span>
-            <div style={styles.separatorLine}></div>
+            <span style={styles.separatorLine} />
+            <span style={styles.separatorText}>OR</span>
+            <span style={styles.separatorLine} />
           </div>
-  
-          {/* Google Sign In Button */}
-          <motion.button
+
+          <button
             type="button"
-            onClick={handleGoogleLogin}
-            disabled={loading || loadingGoogle}
-            whileHover={{ scale: 1.02, backgroundColor: "#1e1e36" }}
-            whileTap={{ scale: 0.98 }}
             style={styles.googleBtn}
+            onClick={handleGoogleLogin}
+            disabled={loadingGoogle}
           >
             {loadingGoogle ? (
-              <div style={styles.loaderContainer}>
-                <div style={styles.spinner}></div>
-                <span>Connecting...</span>
-              </div>
+              <span style={styles.loaderContainer}>
+                <span style={styles.spinner} />
+                Connecting...
+              </span>
             ) : (
-              <>
-                <FcGoogle size={20} />
-                <span>Log in with Google</span>
-              </>
+              "Continue with Google"
             )}
-          </motion.button>
-  
-          {/* Signup Redirection Link */}
+          </button>
+
           <div style={styles.footerLinkContainer}>
             <span style={styles.footerText}>Don't have an account? </span>
-            <span
-              onClick={() => navigate("/signup")}
-              style={styles.signupLink}
-              onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-              onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-            >
+            <span style={styles.signupLink} onClick={() => navigate("/signup")}>
               Sign up
             </span>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
 }
 
-// Styles conforming to e:\notes-app\frontend\design.md tokens
+// Styles conforming to design.md tokens
 const styles = {
   pageContainer: {
     position: "relative",
     width: "100%",
     minHeight: "100vh",
-    backgroundColor: "#0f0f1a", // design.md base
+    backgroundColor: "#0f0f1a",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -333,7 +242,8 @@ const styles = {
     left: "-15%",
     width: "700px",
     height: "700px",
-    background: "radial-gradient(circle, rgba(124,111,247,0.12) 0%, transparent 70%)", // design.md glow
+    background:
+      "radial-gradient(circle, rgba(124,111,247,0.12) 0%, transparent 70%)",
     borderRadius: "50%",
     filter: "blur(60px)",
     pointerEvents: "none",
@@ -345,7 +255,8 @@ const styles = {
     right: "-15%",
     width: "700px",
     height: "700px",
-    background: "radial-gradient(circle, rgba(167,139,250,0.08) 0%, transparent 70%)", // design.md glow
+    background:
+      "radial-gradient(circle, rgba(167,139,250,0.08) 0%, transparent 70%)",
     borderRadius: "50%",
     filter: "blur(60px)",
     pointerEvents: "none",
@@ -361,42 +272,44 @@ const styles = {
   card: {
     width: "100%",
     maxWidth: "420px",
-    backgroundColor: "#131324", // design.md card surface
-    border: "1px solid #1e1e3a", // design.md border accent
+    backgroundColor: "#131324",
+    border: "1px solid #1e1e3a",
     borderRadius: "16px",
     padding: "40px 32px 36px 32px",
-    boxShadow: "0 30px 100px rgba(0, 0, 0, 0.6), 0 0 50px rgba(124, 111, 247, 0.15)", // design.md shadow
+    boxShadow:
+      "0 30px 100px rgba(0, 0, 0, 0.6), 0 0 50px rgba(124, 111, 247, 0.15)",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
   },
   logoContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    cursor: 'pointer',
-    marginBottom: '32px',
-    userSelect: 'none'
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    cursor: "pointer",
+    marginBottom: "32px",
+    userSelect: "none",
   },
   logoBadge: {
-    background: 'linear-gradient(135deg, #7c6ff7, #a78bfa)',
-    borderRadius: '10px',
-    padding: '6px 10px',
-    fontSize: '16px',
-    fontWeight: '900',
-    color: 'white',
-    boxShadow: '0 0 15px rgba(124,111,247,0.6), 0 0 30px rgba(124,111,247,0.3)',
-    border: '1px solid rgba(167,139,250,0.5)'
+    background: "linear-gradient(135deg, #7c6ff7, #a78bfa)",
+    borderRadius: "10px",
+    padding: "6px 10px",
+    fontSize: "16px",
+    fontWeight: "900",
+    color: "white",
+    boxShadow:
+      "0 0 15px rgba(124,111,247,0.6), 0 0 30px rgba(124,111,247,0.3)",
+    border: "1px solid rgba(167,139,250,0.5)",
   },
   logoText: {
-    fontWeight: '800',
-    fontSize: '18px',
-    color: '#ffffff'
+    fontWeight: "800",
+    fontSize: "18px",
+    color: "#ffffff",
   },
   title: {
     fontSize: "24px",
     fontWeight: "600",
-    color: "#ffffff", // design.md primary text
+    color: "#ffffff",
     marginBottom: "32px",
     textAlign: "center",
     letterSpacing: "-0.5px",
@@ -416,7 +329,7 @@ const styles = {
     left: "12px",
     top: "0",
     transform: "translateY(-50%)",
-    backgroundColor: "#131324", // matches card bg to mask border
+    backgroundColor: "#131324",
     padding: "0 6px",
     fontSize: "12px",
     fontWeight: "500",
@@ -428,7 +341,7 @@ const styles = {
     right: "12px",
     top: "0",
     transform: "translateY(-50%)",
-    backgroundColor: "#131324", // matches card bg to mask border
+    backgroundColor: "#131324",
     padding: "0 6px",
     fontSize: "12px",
     fontWeight: "500",
@@ -449,8 +362,7 @@ const styles = {
   eyeToggle: {
     position: "absolute",
     right: "14px",
-    top: "50%",
-    transform: "translateY(-50%)",
+    top: "38px",
     background: "none",
     border: "none",
     cursor: "pointer",
@@ -461,7 +373,7 @@ const styles = {
   },
   submitBtn: {
     width: "100%",
-    background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", // design.md primary gradient
+    background: "linear-gradient(135deg, #7c6ff7, #a78bfa)",
     color: "#ffffff",
     border: "none",
     borderRadius: "8px",
@@ -489,12 +401,12 @@ const styles = {
   },
   separatorText: {
     fontSize: "13px",
-    color: "#6b7280", // design.md low-emphasis text
+    color: "#6b7280",
     padding: "0 12px",
   },
   googleBtn: {
     width: "100%",
-    backgroundColor: "#18182c", // darker secondary background
+    backgroundColor: "#18182c",
     border: "1px solid #1e1e3a",
     borderRadius: "8px",
     padding: "14px",
@@ -514,17 +426,17 @@ const styles = {
     textAlign: "center",
   },
   footerText: {
-    color: "#6b7280", // design.md low-emphasis text
+    color: "#6b7280",
   },
   signupLink: {
-    color: "#7c6ff7", // design.md primary accent
+    color: "#7c6ff7",
     fontWeight: "600",
     cursor: "pointer",
   },
   errorAlert: {
     width: "100%",
     backgroundColor: "rgba(239, 68, 68, 0.1)",
-    border: "1px solid #ef4444", // design.md utility alert
+    border: "1px solid #ef4444",
     borderRadius: "6px",
     padding: "10px 14px",
     color: "#ef4444",
@@ -561,19 +473,12 @@ const styles = {
   },
 };
 
-// Insert inline keyframes for spinner animation
-const styleSheet = document.styleSheets[0] || (() => {
+// Inject keyframes once
+if (typeof document !== "undefined" && !document.getElementById("login-spin-kf")) {
   const style = document.createElement("style");
+  style.id = "login-spin-kf";
+  style.innerHTML = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
   document.head.appendChild(style);
-  return style.sheet;
-})();
-try {
-  styleSheet.insertRule(`
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  `, styleSheet.cssRules.length);
-} catch (e) {}
+}
 
 export default Login;
