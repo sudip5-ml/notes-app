@@ -15,10 +15,13 @@ import Status from './pages/Status'
 import NotePrivacy from './pages/NotePrivacy'
 import TermsOfService from './pages/TermsOfService'
 import NoteCookies from './pages/NoteCookies'
+import { Toaster } from "react-hot-toast";
+
 
 function App() {
   return (
     <BrowserRouter>
+    <Toaster position="top-right" toastOptions={{ style: { background: "#131324", color: "#fff", border: "1px solid #1e1e3a" } }} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />

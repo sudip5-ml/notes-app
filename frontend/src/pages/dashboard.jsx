@@ -12,6 +12,7 @@ import {
   FiZap,
 } from "react-icons/fi";
 import { fetchNotes, createNote, updateNote, deleteNote } from "../utils/api";
+import toast from "react-hot-toast";
 
 const mapNote = (n) => ({
   id: n._id,
@@ -123,7 +124,7 @@ function Dashboard() {
     setDraftContent("");
   };
 
-  const saveNote = async () => {
+    const saveNote = async () => {
     if (!draftTitle.trim()) return;
     setSaving(true);
 
@@ -134,16 +135,19 @@ function Dashboard() {
           content: draftContent,
         });
         setNotes(notes.map((n) => (n.id === editingNote.id ? mapNote(updated) : n)));
+        toast.success("Note updated");
       } else {
         const created = await createNote({
           title: draftTitle,
           content: draftContent,
         });
         setNotes([mapNote(created), ...notes]);
+        toast.success("Note created");
       }
       closeEditor();
     } catch (err) {
       console.error("Failed to save note:", err);
+      toast.error("Couldn't save note");
     } finally {
       setSaving(false);
     }
@@ -155,8 +159,10 @@ function Dashboard() {
     try {
       const updated = await updateNote(id, { favorite: !note.favorite });
       setNotes(notes.map((n) => (n.id === id ? mapNote(updated) : n)));
+      toast.success("Favorite updated");
     } catch (err) {
       console.error("Failed to toggle favorite:", err);
+      toast.error("Couldn't update favorite");
     }
   };
 
@@ -164,8 +170,10 @@ function Dashboard() {
     try {
       const updated = await updateNote(id, { is_trash: true });
       setNotes(notes.map((n) => (n.id === id ? mapNote(updated) : n)));
+      toast.success("Moved to trash");
     } catch (err) {
       console.error("Failed to move to trash:", err);
+      toast.error("Couldn't move to trash");
     }
   };
 
@@ -173,8 +181,10 @@ function Dashboard() {
     try {
       const updated = await updateNote(id, { is_trash: false });
       setNotes(notes.map((n) => (n.id === id ? mapNote(updated) : n)));
+      toast.success("Note restored");
     } catch (err) {
       console.error("Failed to restore note:", err);
+      toast.error("Couldn't restore note");
     }
   };
 
@@ -182,8 +192,10 @@ function Dashboard() {
     try {
       await deleteNote(id);
       setNotes(notes.filter((n) => n.id !== id));
+      toast.success("Note deleted permanently");
     } catch (err) {
       console.error("Failed to delete note:", err);
+      toast.error("Couldn't delete note");
     }
   };
 
