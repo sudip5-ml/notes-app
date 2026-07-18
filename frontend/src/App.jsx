@@ -1,3 +1,4 @@
+import ScrollToTop from './components/ScrollToTop'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
@@ -23,6 +24,7 @@ function App() {
   return (
     <ThemeProvider>
     <BrowserRouter>
+    <ScrollToTop />
     <Toaster position="top-right" toastOptions={{ style: { background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" } }} />
       <Routes>
         <Route path="/" element={<Home />} />

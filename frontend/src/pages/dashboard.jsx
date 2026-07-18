@@ -12,6 +12,7 @@ import {
   FiZap,
   FiSun,
   FiMoon,
+  FiLogOut,
 } from "react-icons/fi";
 import { fetchNotes, createNote, updateNote, deleteNote } from "../utils/api";
 import toast from "react-hot-toast";
@@ -283,15 +284,21 @@ function Dashboard() {
           </div>
         </nav>
 
-        <div style={styles.userFooter}>
-          <div style={styles.userInfo} onClick={handleLogout} title="Click to log out">
-            <div style={styles.avatar}>{getInitial(user.username)}</div>
-            <div style={styles.userName}>{user.username || user.fullName}</div>
-          </div>
-          <div style={styles.logoutText} onClick={goHome}>
-            ← Back to Home
-          </div>
-        </div>
+       <div style={styles.userFooter}>
+  <div style={styles.userInfo}>
+    <div style={styles.avatar}>{getInitial(user.username)}</div>
+    <div style={styles.userName}>{user.username || user.fullName}</div>
+  </div>
+  <div
+    className="icon-btn"
+    style={styles.logoutText}
+    onClick={handleLogout}
+    title="Click to log out"
+  >
+    <FiLogOut size={14} />
+    Logout
+  </div>
+</div>
       </aside>
 
       <main style={styles.main}>
@@ -575,8 +582,22 @@ const styles = {
   userInfo: { display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" },
   avatar: { width: "34px", height: "34px", borderRadius: "50%", background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "14px", color: "#ffffff", flexShrink: 0 },
   userName: { fontSize: "14px", fontWeight: "600", color: "var(--text)" },
-  logoutText: { fontSize: "12px", color: "var(--text-dim)", cursor: "pointer", marginLeft: "44px" },
-  main: { flex: 1, padding: "28px 36px", overflowY: "auto" },
+logoutText: {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "8px",
+  fontSize: "13px",
+  fontWeight: "600",
+  color: "#f87171",
+  cursor: "pointer",
+  padding: "10px 12px",
+  borderRadius: "8px",
+  border: "1px solid rgba(248, 113, 113, 0.2)",
+  backgroundColor: "rgba(248, 113, 113, 0.05)",
+  marginTop: "4px",
+  transition: "background-color 0.15s ease, border-color 0.15s ease",
+},  main: { flex: 1, padding: "28px 36px", overflowY: "auto" },
   contentLayout: { display: "flex", gap: "28px", alignItems: "flex-start" },
   notesColumn: { flex: 1, minWidth: 0 },
   topBar: { display: "flex", flexDirection: "column", alignItems: "center", gap: "18px", marginBottom: "28px" },
