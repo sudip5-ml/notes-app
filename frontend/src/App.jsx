@@ -16,12 +16,14 @@ import NotePrivacy from './pages/NotePrivacy'
 import TermsOfService from './pages/TermsOfService'
 import NoteCookies from './pages/NoteCookies'
 import { Toaster } from "react-hot-toast";
+import { ThemeProvider } from './context/ThemeContext'
 
 
 function App() {
   return (
+    <ThemeProvider>
     <BrowserRouter>
-    <Toaster position="top-right" toastOptions={{ style: { background: "#131324", color: "#fff", border: "1px solid #1e1e3a" } }} />
+    <Toaster position="top-right" toastOptions={{ style: { background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" } }} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
@@ -41,6 +43,7 @@ function App() {
 <Route path="/cookies" element={<NoteCookies />} />
       </Routes>
     </BrowserRouter>
+    </ThemeProvider>
   )
 }
 

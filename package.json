@@ -1,4 +1,13 @@
 {
+  "name": "notenest-parent",
+  "version": "1.0.0",
+  "description": "Parent project for NoteNest app",
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --prefix \"[{name}]\" --names \"backend,frontend\" --prefix-colors \"yellow,cyan\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
   "dependencies": {
     "react-hot-toast": "^2.6.0"
   }

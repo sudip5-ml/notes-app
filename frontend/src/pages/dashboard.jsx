@@ -10,9 +10,12 @@ import {
   FiX,
   FiTrendingUp,
   FiZap,
+  FiSun,
+  FiMoon,
 } from "react-icons/fi";
 import { fetchNotes, createNote, updateNote, deleteNote } from "../utils/api";
 import toast from "react-hot-toast";
+import { useTheme } from "../context/ThemeContext";
 
 const mapNote = (n) => ({
   id: n._id,
@@ -25,6 +28,7 @@ const mapNote = (n) => ({
 
 function Dashboard() {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const [activeNav, setActiveNav] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -227,6 +231,15 @@ function Dashboard() {
           <span style={styles.logoText}>NoteNest</span>
         </div>
 
+        <button
+          onClick={toggleTheme}
+          style={styles.themeToggle}
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        >
+         {theme === "dark" ? <FiMoon size={14} /> : <FiSun size={14} />}
+<span>{theme === "dark" ? "Dark" : "Light"}</span>
+        </button>
+
         <motion.button
           style={styles.newNoteBtn}
           onClick={openNewNoteEditor}
@@ -295,7 +308,7 @@ function Dashboard() {
 
               <div style={styles.searchRow}>
                 <div style={styles.searchWrapper}>
-                  <FiSearch size={16} color="#6b7280" />
+                  <FiSearch size={16} style={{ color: "var(--text-dim)" }} />
                   <input
                     type="text"
                     placeholder="Search notes..."
@@ -308,14 +321,23 @@ function Dashboard() {
             </div>
 
             {filteredNotes.length === 0 ? (
-              <motion.div
-                style={styles.emptyState}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                {activeNav === "trash" ? "Trash is empty." : "No notes found."}
-              </motion.div>
-            ) : (
+  <motion.div
+    style={styles.emptyState}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+  >
+    <FiFileText size={48} style={{ color: "var(--empty-icon)" }} />
+    <p style={styles.emptyText}>
+      {activeNav === "trash" ? "Trash is empty" : "No notes yet"}
+    </p>
+    <p style={styles.emptySubtext}>
+      {activeNav === "trash"
+        ? "Deleted notes will appear here"
+        : "Hit New Note to start writing"}
+    </p>
+  </motion.div>
+) : (
+
               <div style={styles.notesGrid}>
                 <AnimatePresence>
                   {filteredNotes.map((note, index) => (
@@ -326,10 +348,11 @@ function Dashboard() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ duration: 0.25, delay: index * 0.03 }}
-                      whileHover={{ y: -3, borderColor: "#7c6ff7" }}
+whileHover={{ y: -3, borderColor: "var(--accent)", boxShadow: "0 8px 24px var(--accent-glow)" }}
                       style={styles.noteCard}
                       onClick={() => activeNav !== "trash" && openEditNoteEditor(note)}
                     >
+                      <div style={styles.noteAccent} />
                       <h3 style={styles.noteTitle}>{note.title}</h3>
                       <p style={styles.notePreview}>{note.content}</p>
 
@@ -339,6 +362,7 @@ function Dashboard() {
                           {activeNav === "trash" ? (
                             <>
                               <button
+                                className="icon-btn"
                                 style={styles.iconBtn}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -349,6 +373,7 @@ function Dashboard() {
                                 ↺
                               </button>
                               <button
+                                className="icon-btn"
                                 style={styles.iconBtn}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -362,6 +387,7 @@ function Dashboard() {
                           ) : (
                             <>
                               <motion.button
+                                className="icon-btn"
                                 whileTap={{ scale: 1.4 }}
                                 style={styles.iconBtn}
                                 onClick={(e) => {
@@ -371,18 +397,19 @@ function Dashboard() {
                               >
                                 <FiStar
                                   size={14}
-                                  color={note.favorite ? "#facc15" : "#6b7280"}
+                                  color={note.favorite ? "#facc15" : "var(--text-muted)"}
                                   fill={note.favorite ? "#facc15" : "none"}
                                 />
                               </motion.button>
                               <button
+                                className="icon-btn"
                                 style={styles.iconBtn}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   moveToTrash(note.id);
                                 }}
                               >
-                                <FiTrash2 size={14} color="#6b7280" />
+                                <FiTrash2 size={14} color="var(--text-muted)" />
                               </button>
                             </>
                           )}
@@ -391,25 +418,33 @@ function Dashboard() {
                     </motion.div>
                   ))}
                 </AnimatePresence>
+                {activeNav !== "trash" && (
+  <div
+    className="add-note-card"
+    style={styles.addNoteCard}
+    onClick={openNewNoteEditor}
+  >
+    <FiPlus size={24} />
+    <span style={{ fontSize: "13px", fontWeight: 600 }}>Add a note</span>
+  </div>
+)}
               </div>
             )}
           </div>
 
           <aside style={styles.rightPanel}>
-            <div style={styles.statsGrid}>
-              <div style={styles.statCard}>
-                <div style={styles.statValue}>{activeCount}</div>
-                <div style={styles.statLabel}>Total Notes</div>
-              </div>
-              <div style={styles.statCard}>
-                <div style={{ ...styles.statValue, color: "#facc15" }}>{favoriteCount}</div>
-                <div style={styles.statLabel}>Favorites</div>
-              </div>
-              <div style={styles.statCard}>
-                <div style={{ ...styles.statValue, color: "#f87171" }}>{trashCount}</div>
-                <div style={styles.statLabel}>In Trash</div>
-              </div>
-            </div>
+  <div style={{ ...styles.statCard, borderTop: "3px solid #7c6ff7", background: "linear-gradient(180deg, rgba(124,111,247,0.08), var(--surface) 40%)" }}>
+  <div style={styles.statValue}>{activeCount}</div>
+  <div style={styles.statLabel}>Total Notes</div>
+</div>
+<div style={{ ...styles.statCard, borderTop: "3px solid #facc15", background: "linear-gradient(180deg, rgba(250,204,21,0.08), var(--surface) 40%)" }}>
+  <div style={{ ...styles.statValue, color: "#facc15" }}>{favoriteCount}</div>
+  <div style={styles.statLabel}>Favorites</div>
+</div>
+<div style={{ ...styles.statCard, borderTop: "3px solid #f87171", background: "linear-gradient(180deg, rgba(248,113,113,0.08), var(--surface) 40%)" }}>
+  <div style={{ ...styles.statValue, color: "#f87171" }}>{trashCount}</div>
+  <div style={styles.statLabel}>In Trash</div>
+</div>
 
             <div style={styles.panelCard}>
               <div style={styles.panelHeader}>
@@ -475,7 +510,7 @@ function Dashboard() {
               <div style={styles.modalHeader}>
                 <h2 style={styles.modalTitle}>{editingNote ? "Edit Note" : "New Note"}</h2>
                 <button style={styles.closeBtn} onClick={closeEditor}>
-                  <FiX size={20} color="#9ca3af" />
+                  <FiX size={20} style={{ color: "var(--text-muted)" }} />
                 </button>
               </div>
 
@@ -484,6 +519,7 @@ function Dashboard() {
                 placeholder="Note title"
                 value={draftTitle}
                 onChange={(e) => setDraftTitle(e.target.value)}
+                className="title-input"
                 style={styles.titleInput}
                 autoFocus
               />
@@ -492,6 +528,7 @@ function Dashboard() {
                 placeholder="Start writing..."
                 value={draftContent}
                 onChange={(e) => setDraftContent(e.target.value)}
+                className="content-textarea"
                 style={styles.contentTextarea}
               />
 
@@ -522,62 +559,188 @@ function Dashboard() {
 }
 
 const styles = {
-  pageContainer: { display: "flex", width: "100%", minHeight: "100vh", backgroundColor: "#0f0f1a", fontFamily: "'Outfit', sans-serif" },
-  sidebar: { width: "260px", backgroundColor: "#131324", borderRight: "1px solid #1e1e3a", display: "flex", flexDirection: "column", padding: "24px 16px", flexShrink: 0 },
-  logoContainer: { display: "flex", alignItems: "center", gap: "10px", marginBottom: "28px", padding: "0 8px" },
+  pageContainer: { display: "flex", width: "100%", minHeight: "100vh", backgroundColor: "var(--bg)", fontFamily: "'Outfit', sans-serif" },
+  sidebar: { width: "260px", backgroundColor: "var(--surface)", borderRight: "1px solid var(--border)", display: "flex", flexDirection: "column", padding: "24px 16px", flexShrink: 0 },
+  logoContainer: { display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px", padding: "0 8px" },
   logoBadge: { background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", borderRadius: "8px", padding: "6px 9px", fontSize: "14px", fontWeight: "900", color: "white" },
-  logoText: { fontWeight: "700", fontSize: "17px", color: "#ffffff" },
+  logoText: { fontWeight: "700", fontSize: "17px", color: "var(--text)" },
+  themeToggle: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface-alt)", color: "var(--text-muted)", fontSize: "13px", fontWeight: "600", cursor: "pointer", marginBottom: "16px", transition: "background 0.2s, color 0.2s, border-color 0.2s" },
   newNoteBtn: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", color: "#ffffff", border: "none", borderRadius: "8px", padding: "12px", fontSize: "14px", fontWeight: "600", cursor: "pointer", marginBottom: "24px", boxShadow: "0 0 20px rgba(124, 111, 247, 0.2)" },
   navList: { display: "flex", flexDirection: "column", gap: "4px", flex: 1 },
-  navItem: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 12px", borderRadius: "8px", cursor: "pointer", color: "#9ca3af", fontSize: "14px", fontWeight: "500" },
+  navItem: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 12px", borderRadius: "8px", cursor: "pointer", color: "var(--text-muted)", fontSize: "14px", fontWeight: "500" },
   navItemActive: { backgroundColor: "#7c6ff7", color: "#ffffff" },
   navItemLabel: { display: "flex", alignItems: "center", gap: "10px" },
-  navBadge: { backgroundColor: "rgba(255,255,255,0.2)", borderRadius: "10px", padding: "1px 8px", fontSize: "12px", fontWeight: "600" },
-  userFooter: { display: "flex", flexDirection: "column", gap: "8px", padding: "12px 8px", borderTop: "1px solid #1e1e3a", marginTop: "12px" },
+  navBadge: { backgroundColor: "var(--badge-bg)", borderRadius: "10px", padding: "1px 8px", fontSize: "12px", fontWeight: "600" },
+  userFooter: { display: "flex", flexDirection: "column", gap: "8px", padding: "12px 8px", borderTop: "1px solid var(--border)", marginTop: "12px" },
   userInfo: { display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" },
   avatar: { width: "34px", height: "34px", borderRadius: "50%", background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "14px", color: "#ffffff", flexShrink: 0 },
-  userName: { fontSize: "14px", fontWeight: "600", color: "#ffffff" },
-  logoutText: { fontSize: "12px", color: "#6b7280", cursor: "pointer", marginLeft: "44px" },
+  userName: { fontSize: "14px", fontWeight: "600", color: "var(--text)" },
+  logoutText: { fontSize: "12px", color: "var(--text-dim)", cursor: "pointer", marginLeft: "44px" },
   main: { flex: 1, padding: "28px 36px", overflowY: "auto" },
   contentLayout: { display: "flex", gap: "28px", alignItems: "flex-start" },
   notesColumn: { flex: 1, minWidth: 0 },
   topBar: { display: "flex", flexDirection: "column", alignItems: "center", gap: "18px", marginBottom: "28px" },
-  pageTitle: { fontSize: "22px", fontWeight: "700", color: "#ffffff", margin: 0, alignSelf: "flex-start" },
+  pageTitle: { fontSize: "22px", fontWeight: "700", color: "var(--text)", margin: 0, alignSelf: "flex-start" },
   searchRow: { display: "flex", justifyContent: "center", width: "100%" },
-  searchWrapper: { display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#131324", border: "1px solid #1e1e3a", borderRadius: "8px", padding: "10px 14px", width: "100%", maxWidth: "420px" },
-  searchInput: { background: "transparent", border: "none", outline: "none", color: "#ffffff", fontSize: "14px", width: "100%" },
-  notesGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "20px" },
-  noteCard: { backgroundColor: "#131324", border: "1px solid #1e1e3a", borderRadius: "12px", padding: "20px", cursor: "pointer" },
-  noteTitle: { fontSize: "16px", fontWeight: "600", color: "#ffffff", margin: "0 0 10px 0" },
-  notePreview: { fontSize: "13px", color: "#9ca3af", lineHeight: "1.5", margin: "0 0 20px 0", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" },
+  searchWrapper: { display: "flex", alignItems: "center", gap: "8px", backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", padding: "10px 14px", width: "100%", maxWidth: "420px" },
+  searchInput: { background: "transparent", border: "none", outline: "none", color: "var(--text)", fontSize: "14px", width: "100%" },
+  notesGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(260px, 320px))",
+    gap: "20px",
+  },
+  noteCard: {
+    backgroundColor: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "12px",
+    padding: "20px",
+    cursor: "pointer",
+    transition: "box-shadow 0.2s ease, border-color 0.2s ease",
+    boxShadow: "var(--card-shadow)",
+  },
+  addNoteCard: {
+    backgroundColor: "transparent",
+    border: "2px dashed var(--border-dashed)",
+    borderRadius: "12px",
+    padding: "20px",
+    cursor: "pointer",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    minHeight: "160px",
+    color: "var(--text-dim)",
+    transition: "border-color 0.2s ease, color 0.2s ease",
+  },
+  noteAccent: {
+    width: "36px",
+    height: "4px",
+    borderRadius: "2px",
+    background: "linear-gradient(90deg, #7c6ff7, #a78bfa)",
+    marginBottom: "14px",
+  },
+  noteTitle: {
+  fontSize: "17px",
+  fontWeight: "700",
+  color: "var(--text)",
+  margin: "0 0 8px 0",
+  letterSpacing: "-0.01em",
+  display: "-webkit-box",
+  WebkitLineClamp: 1,
+  WebkitBoxOrient: "vertical",
+  overflow: "hidden",
+  wordBreak: "break-all",
+},
+  notePreview: {
+    fontSize: "13px",
+    color: "var(--text-preview)",
+    lineHeight: "1.6",
+    margin: "0 0 20px 0",
+    display: "-webkit-box",
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+  },
   noteFooter: { display: "flex", alignItems: "center", justifyContent: "space-between" },
-  noteDate: { fontSize: "12px", color: "#4b5563" },
+  noteDate: { fontSize: "12px", color: "var(--text-faint)" },
   noteActions: { display: "flex", gap: "4px" },
-  iconBtn: { background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center", color: "#9ca3af" },
-  emptyState: { color: "#6b7280", fontSize: "14px", textAlign: "center", padding: "60px 0" },
+  iconBtn: {
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    padding: "6px",
+    display: "flex",
+    alignItems: "center",
+    color: "var(--text-muted)",
+    borderRadius: "6px",
+  },
+  emptyState: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    padding: "80px 20px",
+    textAlign: "center",
+  },
+  emptyText: {
+    color: "var(--text-empty)",
+    fontSize: "18px",
+    fontWeight: 600,
+    margin: 0,
+  },
+  emptySubtext: {
+    color: "var(--text-empty-sub)",
+    fontSize: "14px",
+    margin: 0,
+  },
   rightPanel: { width: "280px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "18px" },
   statsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" },
-  statCard: { backgroundColor: "#131324", border: "1px solid #1e1e3a", borderRadius: "10px", padding: "14px 8px", textAlign: "center" },
-  statValue: { fontSize: "20px", fontWeight: "700", color: "#ffffff" },
-  statLabel: { fontSize: "11px", color: "#6b7280", marginTop: "4px" },
-  panelCard: { backgroundColor: "#131324", border: "1px solid #1e1e3a", borderRadius: "12px", padding: "18px" },
+  statCard: {
+    backgroundColor: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderTop: "2px solid #7c6ff7",
+    borderRadius: "10px",
+    padding: "14px 8px",
+    textAlign: "center",
+    transition: "transform 0.2s ease",
+  },
+  statValue: { fontSize: "20px", fontWeight: "700", color: "var(--text)" },
+  statLabel: { fontSize: "11px", color: "var(--text-dim)", marginTop: "4px" },
+  panelCard: { backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "18px" },
   panelHeader: { display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" },
-  panelHeaderText: { fontSize: "13px", fontWeight: "600", color: "#ffffff" },
+  panelHeaderText: { fontSize: "13px", fontWeight: "600", color: "var(--text)" },
   barChart: { display: "flex", alignItems: "flex-end", justifyContent: "space-between", height: "100px", gap: "6px" },
   barColumn: { display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", flex: 1 },
-  barTrack: { width: "100%", height: "80px", display: "flex", alignItems: "flex-end", backgroundColor: "#1a1a30", borderRadius: "4px", overflow: "hidden" },
+  barTrack: { width: "100%", height: "80px", display: "flex", alignItems: "flex-end", backgroundColor: "var(--surface-alt)", borderRadius: "4px", overflow: "hidden" },
   barFill: { width: "100%", background: "linear-gradient(180deg, #a78bfa, #7c6ff7)", borderRadius: "4px 4px 0 0" },
-  barLabel: { fontSize: "10px", color: "#6b7280" },
-  tipText: { fontSize: "13px", color: "#9ca3af", lineHeight: "1.6", margin: 0 },
-  modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "20px" },
-  modalCard: { backgroundColor: "#131324", border: "1px solid #1e1e3a", borderRadius: "16px", width: "100%", maxWidth: "560px", padding: "24px", boxShadow: "0 30px 100px rgba(0,0,0,0.6)", display: "flex", flexDirection: "column" },
+  barLabel: { fontSize: "10px", color: "var(--text-dim)" },
+  tipText: { fontSize: "13px", color: "var(--text-muted)", lineHeight: "1.6", margin: 0 },
+  modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "20px" },
+  modalCard: {
+    backgroundColor: "var(--surface)",
+    border: "1px solid var(--border-dashed)",
+    borderRadius: "16px",
+    width: "100%",
+    maxWidth: "560px",
+    padding: "24px",
+    boxShadow: "var(--modal-shadow)",
+    display: "flex",
+    flexDirection: "column",
+  },
   modalHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" },
-  modalTitle: { fontSize: "18px", fontWeight: "600", color: "#ffffff", margin: 0 },
+  modalTitle: { fontSize: "18px", fontWeight: "600", color: "var(--text)", margin: 0 },
   closeBtn: { background: "none", border: "none", cursor: "pointer", display: "flex" },
-  titleInput: { backgroundColor: "transparent", border: "1px solid #1e1e3a", borderRadius: "8px", padding: "12px 14px", fontSize: "16px", fontWeight: "600", color: "#ffffff", outline: "none", marginBottom: "12px" },
-  contentTextarea: { backgroundColor: "transparent", border: "1px solid #1e1e3a", borderRadius: "8px", padding: "12px 14px", fontSize: "14px", color: "#ffffff", outline: "none", minHeight: "180px", resize: "vertical", fontFamily: "'Outfit', sans-serif", lineHeight: "1.6", marginBottom: "20px" },
+  titleInput: {
+    backgroundColor: "var(--input-bg)",
+    border: "1px solid var(--border)",
+    borderRadius: "8px",
+    padding: "12px 14px",
+    fontSize: "16px",
+    fontWeight: "600",
+    color: "var(--text)",
+    outline: "none",
+    marginBottom: "12px",
+    transition: "border-color 0.2s ease",
+  },
+  contentTextarea: {
+    backgroundColor: "var(--input-bg)",
+    border: "1px solid var(--border)",
+    borderRadius: "8px",
+    padding: "12px 14px",
+    fontSize: "14px",
+    color: "var(--text)",
+    outline: "none",
+    minHeight: "180px",
+    resize: "vertical",
+    fontFamily: "'Outfit', sans-serif",
+    lineHeight: "1.6",
+    marginBottom: "20px",
+    transition: "border-color 0.2s ease",
+  },
   modalFooter: { display: "flex", justifyContent: "flex-end", gap: "12px" },
-  cancelBtn: { backgroundColor: "transparent", border: "1px solid #1e1e3a", borderRadius: "8px", padding: "10px 18px", color: "#9ca3af", fontSize: "14px", fontWeight: "600", cursor: "pointer" },
+  cancelBtn: { backgroundColor: "transparent", border: "1px solid var(--border)", borderRadius: "8px", padding: "10px 18px", color: "var(--text-muted)", fontSize: "14px", fontWeight: "600", cursor: "pointer" },
   saveBtn: { background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", border: "none", borderRadius: "8px", padding: "10px 18px", color: "#ffffff", fontSize: "14px", fontWeight: "600" },
 };
 

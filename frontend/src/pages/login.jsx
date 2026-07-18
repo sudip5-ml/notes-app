@@ -71,10 +71,14 @@ function Login() {
       setSuccess(true);
       setTimeout(() => navigate("/dashboard"), 1000);
     } catch (err) {
-      setError(err.message || "Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  if (err instanceof TypeError) {
+    setError("Can't reach the server — is the backend running?");
+  } else {
+    setError(err.message || "Something went wrong. Please try again.");
+  }
+} finally {
+  setLoading(false);
+}
   };
 
   const handleGoogleLogin = () => {
