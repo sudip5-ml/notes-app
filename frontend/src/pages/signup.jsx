@@ -284,33 +284,6 @@ function Signup() {
             </motion.button>
           </form>
 
-          <div style={styles.separatorContainer}>
-            <div style={styles.separatorLine}></div>
-            <span style={styles.separatorText}>or</span>
-            <div style={styles.separatorLine}></div>
-          </div>
-
-          <motion.button
-            type="button"
-            onClick={handleGoogleSignup}
-            disabled={loading || loadingGoogle}
-            whileHover={{ scale: 1.02, backgroundColor: "#1e1e36" }}
-            whileTap={{ scale: 0.98 }}
-            style={styles.googleBtn}
-          >
-            {loadingGoogle ? (
-              <div style={styles.loaderContainer}>
-                <div style={styles.spinner}></div>
-                <span>Connecting...</span>
-              </div>
-            ) : (
-              <>
-                <FcGoogle size={20} />
-                <span>Sign up with Google</span>
-              </>
-            )}
-          </motion.button>
-
           <div style={styles.footerLinkContainer}>
             <span style={styles.footerText}>Already have an account? </span>
             <span

@@ -193,28 +193,6 @@ function Login() {
             </button>
           </form>
 
-          <div style={styles.separatorContainer}>
-            <span style={styles.separatorLine} />
-            <span style={styles.separatorText}>OR</span>
-            <span style={styles.separatorLine} />
-          </div>
-
-          <button
-            type="button"
-            style={styles.googleBtn}
-            onClick={handleGoogleLogin}
-            disabled={loadingGoogle}
-          >
-            {loadingGoogle ? (
-              <span style={styles.loaderContainer}>
-                <span style={styles.spinner} />
-                Connecting...
-              </span>
-            ) : (
-              "Continue with Google"
-            )}
-          </button>
-
           <div style={styles.footerLinkContainer}>
             <span style={styles.footerText}>Don't have an account? </span>
             <span style={styles.signupLink} onClick={() => navigate("/signup")}>

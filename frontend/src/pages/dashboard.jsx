@@ -227,10 +227,10 @@ function Dashboard() {
   return (
     <div style={styles.pageContainer}>
       <aside style={styles.sidebar}>
-        <div style={styles.logoContainer}>
-          <span style={styles.logoBadge}>NN</span>
-          <span style={styles.logoText}>NoteNest</span>
-        </div>
+        <div style={{ ...styles.logoContainer, cursor: "pointer" }} onClick={() => navigate("/")}>
+  <span style={styles.logoBadge}>NN</span>
+  <span style={styles.logoText}>NoteNest</span>
+</div>
 
         <button
           onClick={toggleTheme}
