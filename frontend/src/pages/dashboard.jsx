@@ -82,7 +82,7 @@ function Dashboard() {
         counts[dayLabel] += 1;
       }
     });
-
+    
     const max = Math.max(1, ...Object.values(counts));
     return days.map((day) => ({
       day,
@@ -252,9 +252,14 @@ function Dashboard() {
             <div style={styles.avatar}>{getInitial(user.username)}</div>
             <div style={styles.userName}>{user.username || user.fullName}</div>
           </div>
-          <div style={styles.logoutText} onClick={goHome}>
-            ← Back to Home
-          </div>
+           {/* Logout Button */}
+     
+            <button 
+              onClick={handleLogout}
+              style={styles.logoutButton}
+            >
+              Logout
+            </button>
         </div>
       </aside>
 
@@ -503,6 +508,28 @@ function Dashboard() {
 }
 
 const styles = {
+  userFooter: {
+    padding: '20px',
+    borderTop: '1px solid #eee',
+    marginTop: '20px',
+    display: 'flex',
+    justifyContent: 'center'
+  },
+  logoutButton: {
+    backgroundColor: 'rgb(124, 111, 247)',
+    color: 'white',
+    border: 'none',
+    padding: '10px 30px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '16px',
+    fontWeight: '500',
+    transition: 'background-color 0.3s'
+  },
+  // Add hover effect
+  logoutButtonHover: {
+    backgroundColor: '#c82333'
+  },
   pageContainer: {
     display: "flex",
     width: "100%",

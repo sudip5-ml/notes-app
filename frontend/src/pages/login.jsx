@@ -69,7 +69,13 @@ function Login() {
       localStorage.setItem("user", JSON.stringify(data.user));
 
       setSuccess(true);
-      setTimeout(() => navigate("/dashboard"), 1000);
+
+      // Admins go to /admin, everyone else goes to /dashboard.
+      // This depends on your backend's login response including
+      // "role" on the user object.
+      setTimeout(() => {
+        navigate(data.user.role === "admin" ? "/admindashboard" : "/dashboard");
+      }, 1000);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -82,19 +88,21 @@ function Login() {
     setError("");
 
     setTimeout(() => {
+      const mockUser = {
+        id: 9999,
+        username: "Google User",
+        email: "google@gmail.com",
+        role: "admin",
+      };
+
       localStorage.setItem("token", "google_demo_mock_token_12345");
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: 9999,
-          username: "Google User",
-          email: "google@gmail.com",
-        })
-      );
+      localStorage.setItem("user", JSON.stringify(mockUser));
 
       setLoadingGoogle(false);
       setSuccess(true);
-      setTimeout(() => navigate("/dashboard"), 1000);
+      setTimeout(() => {
+        navigate(mockUser.role === "admin" ? "/admindashboard" : "/dashboard");
+      }, 1000);
     }, 1200);
   };
 
