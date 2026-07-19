@@ -10,10 +10,26 @@ import {
   FiX,
   FiTrendingUp,
   FiZap,
+  FiSun,
+  FiMoon,
+  FiLogOut,
 } from "react-icons/fi";
+import { fetchNotes, createNote, updateNote, deleteNote } from "../utils/api";
+import toast from "react-hot-toast";
+import { useTheme } from "../context/ThemeContext";
+
+const mapNote = (n) => ({
+  id: n._id,
+  title: n.title,
+  content: n.content,
+  date: (n.created_at || n.updated_at || "").split("T")[0],
+  favorite: n.favorite,
+  trashed: n.is_trash,
+});
 
 function Dashboard() {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const [activeNav, setActiveNav] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,32 +40,7 @@ function Dashboard() {
   const [draftContent, setDraftContent] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const [notes, setNotes] = useState([
-    {
-      id: 1,
-      title: "My First Note",
-      content: "This is my first note on NoteNest! Welcome to your personal notes space.",
-      date: "2026-07-04",
-      favorite: false,
-      trashed: false,
-    },
-    {
-      id: 2,
-      title: "Study Notes",
-      content: "React is a frontend library built by Facebook. It uses components to build UIs.",
-      date: "2026-07-04",
-      favorite: false,
-      trashed: false,
-    },
-    {
-      id: 3,
-      title: "Project Ideas",
-      content: "Build a notes app using React and Node.js. Add login, search and delete features.",
-      date: "2026-07-04",
-      favorite: false,
-      trashed: false,
-    },
-  ]);
+  const [notes, setNotes] = useState([]);
 
   const user = JSON.parse(localStorage.getItem("user")) || { username: "Guest" };
 
@@ -69,7 +60,6 @@ function Dashboard() {
   const favoriteCount = notes.filter((n) => n.favorite && !n.trashed).length;
   const trashCount = notes.filter((n) => n.trashed).length;
 
-  // ---- Data for the right-side weekly activity widget ----
   const weeklyActivity = useMemo(() => {
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const counts = {};
@@ -78,11 +68,11 @@ function Dashboard() {
     notes.forEach((note) => {
       const d = new Date(note.date);
       if (!isNaN(d)) {
-        const dayLabel = days[(d.getDay() + 6) % 7]; // Mon-first index
+        const dayLabel = days[(d.getDay() + 6) % 7];
         counts[dayLabel] += 1;
       }
     });
-    
+
     const max = Math.max(1, ...Object.values(counts));
     return days.map((day) => ({
       day,
@@ -106,6 +96,18 @@ function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const loadNotes = async () => {
+      try {
+        const data = await fetchNotes();
+        setNotes(data.map(mapNote));
+      } catch (err) {
+        console.error("Failed to load notes:", err);
+      }
+    };
+    loadNotes();
+  }, []);
+
   const openNewNoteEditor = () => {
     setEditingNote(null);
     setDraftTitle("");
@@ -127,51 +129,79 @@ function Dashboard() {
     setDraftContent("");
   };
 
-  const saveNote = () => {
+    const saveNote = async () => {
     if (!draftTitle.trim()) return;
     setSaving(true);
-    const today = new Date().toISOString().split("T")[0];
 
-    if (editingNote) {
-      setNotes(
-        notes.map((n) =>
-          n.id === editingNote.id
-            ? { ...n, title: draftTitle, content: draftContent, date: today }
-            : n
-        )
-      );
-    } else {
-      const newNote = {
-        id: Date.now(),
-        title: draftTitle,
-        content: draftContent,
-        date: today,
-        favorite: false,
-        trashed: false,
-      };
-      setNotes([newNote, ...notes]);
-    }
-
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      if (editingNote) {
+        const updated = await updateNote(editingNote.id, {
+          title: draftTitle,
+          content: draftContent,
+        });
+        setNotes(notes.map((n) => (n.id === editingNote.id ? mapNote(updated) : n)));
+        toast.success("Note updated");
+      } else {
+        const created = await createNote({
+          title: draftTitle,
+          content: draftContent,
+        });
+        setNotes([mapNote(created), ...notes]);
+        toast.success("Note created");
+      }
       closeEditor();
-    }, 250);
+    } catch (err) {
+      console.error("Failed to save note:", err);
+      toast.error("Couldn't save note");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const toggleFavorite = (id) => {
-    setNotes(notes.map((n) => (n.id === id ? { ...n, favorite: !n.favorite } : n)));
+  const toggleFavorite = async (id) => {
+    const note = notes.find((n) => n.id === id);
+    if (!note) return;
+    try {
+      const updated = await updateNote(id, { favorite: !note.favorite });
+      setNotes(notes.map((n) => (n.id === id ? mapNote(updated) : n)));
+      toast.success("Favorite updated");
+    } catch (err) {
+      console.error("Failed to toggle favorite:", err);
+      toast.error("Couldn't update favorite");
+    }
   };
 
-  const moveToTrash = (id) => {
-    setNotes(notes.map((n) => (n.id === id ? { ...n, trashed: true } : n)));
+  const moveToTrash = async (id) => {
+    try {
+      const updated = await updateNote(id, { is_trash: true });
+      setNotes(notes.map((n) => (n.id === id ? mapNote(updated) : n)));
+      toast.success("Moved to trash");
+    } catch (err) {
+      console.error("Failed to move to trash:", err);
+      toast.error("Couldn't move to trash");
+    }
   };
 
-  const restoreFromTrash = (id) => {
-    setNotes(notes.map((n) => (n.id === id ? { ...n, trashed: false } : n)));
+  const restoreFromTrash = async (id) => {
+    try {
+      const updated = await updateNote(id, { is_trash: false });
+      setNotes(notes.map((n) => (n.id === id ? mapNote(updated) : n)));
+      toast.success("Note restored");
+    } catch (err) {
+      console.error("Failed to restore note:", err);
+      toast.error("Couldn't restore note");
+    }
   };
 
-  const deletePermanently = (id) => {
-    setNotes(notes.filter((n) => n.id !== id));
+  const deletePermanently = async (id) => {
+    try {
+      await deleteNote(id);
+      setNotes(notes.filter((n) => n.id !== id));
+      toast.success("Note deleted permanently");
+    } catch (err) {
+      console.error("Failed to delete note:", err);
+      toast.error("Couldn't delete note");
+    }
   };
 
   const handleLogout = () => {
@@ -196,12 +226,20 @@ function Dashboard() {
 
   return (
     <div style={styles.pageContainer}>
-      {/* Sidebar */}
       <aside style={styles.sidebar}>
-        <div style={styles.logoContainer}>
-          <span style={styles.logoBadge}>NN</span>
-          <span style={styles.logoText}>NoteNest</span>
-        </div>
+        <div style={{ ...styles.logoContainer, cursor: "pointer" }} onClick={() => navigate("/")}>
+  <span style={styles.logoBadge}>NN</span>
+  <span style={styles.logoText}>NoteNest</span>
+</div>
+
+        <button
+          onClick={toggleTheme}
+          style={styles.themeToggle}
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        >
+         {theme === "dark" ? <FiMoon size={14} /> : <FiSun size={14} />}
+<span>{theme === "dark" ? "Dark" : "Light"}</span>
+        </button>
 
         <motion.button
           style={styles.newNoteBtn}
@@ -246,27 +284,25 @@ function Dashboard() {
           </div>
         </nav>
 
-        {/* User footer: avatar/name logs out, "Back to Home" navigates home */}
-        <div style={styles.userFooter}>
-          <div style={styles.userInfo} onClick={handleLogout} title="Click to log out">
-            <div style={styles.avatar}>{getInitial(user.username)}</div>
-            <div style={styles.userName}>{user.username || user.fullName}</div>
-          </div>
-           {/* Logout Button */}
-     
-            <button 
-              onClick={handleLogout}
-              style={styles.logoutButton}
-            >
-              Logout
-            </button>
-        </div>
+       <div style={styles.userFooter}>
+  <div style={styles.userInfo}>
+    <div style={styles.avatar}>{getInitial(user.username)}</div>
+    <div style={styles.userName}>{user.username || user.fullName}</div>
+  </div>
+  <div
+    className="icon-btn"
+    style={styles.logoutText}
+    onClick={handleLogout}
+    title="Click to log out"
+  >
+    <FiLogOut size={14} />
+    Logout
+  </div>
+</div>
       </aside>
 
-      {/* Main content */}
       <main style={styles.main}>
         <div style={styles.contentLayout}>
-          {/* Notes column */}
           <div style={styles.notesColumn}>
             <div style={styles.topBar}>
               <h1 style={styles.pageTitle}>
@@ -279,7 +315,7 @@ function Dashboard() {
 
               <div style={styles.searchRow}>
                 <div style={styles.searchWrapper}>
-                  <FiSearch size={16} color="#6b7280" />
+                  <FiSearch size={16} style={{ color: "var(--text-dim)" }} />
                   <input
                     type="text"
                     placeholder="Search notes..."
@@ -292,14 +328,23 @@ function Dashboard() {
             </div>
 
             {filteredNotes.length === 0 ? (
-              <motion.div
-                style={styles.emptyState}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                {activeNav === "trash" ? "Trash is empty." : "No notes found."}
-              </motion.div>
-            ) : (
+  <motion.div
+    style={styles.emptyState}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+  >
+    <FiFileText size={48} style={{ color: "var(--empty-icon)" }} />
+    <p style={styles.emptyText}>
+      {activeNav === "trash" ? "Trash is empty" : "No notes yet"}
+    </p>
+    <p style={styles.emptySubtext}>
+      {activeNav === "trash"
+        ? "Deleted notes will appear here"
+        : "Hit New Note to start writing"}
+    </p>
+  </motion.div>
+) : (
+
               <div style={styles.notesGrid}>
                 <AnimatePresence>
                   {filteredNotes.map((note, index) => (
@@ -310,10 +355,11 @@ function Dashboard() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ duration: 0.25, delay: index * 0.03 }}
-                      whileHover={{ y: -3, borderColor: "#7c6ff7" }}
+whileHover={{ y: -3, borderColor: "var(--accent)", boxShadow: "0 8px 24px var(--accent-glow)" }}
                       style={styles.noteCard}
                       onClick={() => activeNav !== "trash" && openEditNoteEditor(note)}
                     >
+                      <div style={styles.noteAccent} />
                       <h3 style={styles.noteTitle}>{note.title}</h3>
                       <p style={styles.notePreview}>{note.content}</p>
 
@@ -323,6 +369,7 @@ function Dashboard() {
                           {activeNav === "trash" ? (
                             <>
                               <button
+                                className="icon-btn"
                                 style={styles.iconBtn}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -333,6 +380,7 @@ function Dashboard() {
                                 ↺
                               </button>
                               <button
+                                className="icon-btn"
                                 style={styles.iconBtn}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -346,6 +394,7 @@ function Dashboard() {
                           ) : (
                             <>
                               <motion.button
+                                className="icon-btn"
                                 whileTap={{ scale: 1.4 }}
                                 style={styles.iconBtn}
                                 onClick={(e) => {
@@ -355,18 +404,19 @@ function Dashboard() {
                               >
                                 <FiStar
                                   size={14}
-                                  color={note.favorite ? "#facc15" : "#6b7280"}
+                                  color={note.favorite ? "#facc15" : "var(--text-muted)"}
                                   fill={note.favorite ? "#facc15" : "none"}
                                 />
                               </motion.button>
                               <button
+                                className="icon-btn"
                                 style={styles.iconBtn}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   moveToTrash(note.id);
                                 }}
                               >
-                                <FiTrash2 size={14} color="#6b7280" />
+                                <FiTrash2 size={14} color="var(--text-muted)" />
                               </button>
                             </>
                           )}
@@ -375,26 +425,33 @@ function Dashboard() {
                     </motion.div>
                   ))}
                 </AnimatePresence>
+                {activeNav !== "trash" && (
+  <div
+    className="add-note-card"
+    style={styles.addNoteCard}
+    onClick={openNewNoteEditor}
+  >
+    <FiPlus size={24} />
+    <span style={{ fontSize: "13px", fontWeight: 600 }}>Add a note</span>
+  </div>
+)}
               </div>
             )}
           </div>
 
-          {/* Right-side insights panel — fills previously empty space */}
           <aside style={styles.rightPanel}>
-            <div style={styles.statsGrid}>
-              <div style={styles.statCard}>
-                <div style={styles.statValue}>{activeCount}</div>
-                <div style={styles.statLabel}>Total Notes</div>
-              </div>
-              <div style={styles.statCard}>
-                <div style={{ ...styles.statValue, color: "#facc15" }}>{favoriteCount}</div>
-                <div style={styles.statLabel}>Favorites</div>
-              </div>
-              <div style={styles.statCard}>
-                <div style={{ ...styles.statValue, color: "#f87171" }}>{trashCount}</div>
-                <div style={styles.statLabel}>In Trash</div>
-              </div>
-            </div>
+  <div style={{ ...styles.statCard, borderTop: "3px solid #7c6ff7", background: "linear-gradient(180deg, rgba(124,111,247,0.08), var(--surface) 40%)" }}>
+  <div style={styles.statValue}>{activeCount}</div>
+  <div style={styles.statLabel}>Total Notes</div>
+</div>
+<div style={{ ...styles.statCard, borderTop: "3px solid #facc15", background: "linear-gradient(180deg, rgba(250,204,21,0.08), var(--surface) 40%)" }}>
+  <div style={{ ...styles.statValue, color: "#facc15" }}>{favoriteCount}</div>
+  <div style={styles.statLabel}>Favorites</div>
+</div>
+<div style={{ ...styles.statCard, borderTop: "3px solid #f87171", background: "linear-gradient(180deg, rgba(248,113,113,0.08), var(--surface) 40%)" }}>
+  <div style={{ ...styles.statValue, color: "#f87171" }}>{trashCount}</div>
+  <div style={styles.statLabel}>In Trash</div>
+</div>
 
             <div style={styles.panelCard}>
               <div style={styles.panelHeader}>
@@ -440,7 +497,6 @@ function Dashboard() {
         </div>
       </main>
 
-      {/* Note editor modal */}
       <AnimatePresence>
         {isEditorOpen && (
           <motion.div
@@ -461,7 +517,7 @@ function Dashboard() {
               <div style={styles.modalHeader}>
                 <h2 style={styles.modalTitle}>{editingNote ? "Edit Note" : "New Note"}</h2>
                 <button style={styles.closeBtn} onClick={closeEditor}>
-                  <FiX size={20} color="#9ca3af" />
+                  <FiX size={20} style={{ color: "var(--text-muted)" }} />
                 </button>
               </div>
 
@@ -470,6 +526,7 @@ function Dashboard() {
                 placeholder="Note title"
                 value={draftTitle}
                 onChange={(e) => setDraftTitle(e.target.value)}
+                className="title-input"
                 style={styles.titleInput}
                 autoFocus
               />
@@ -478,6 +535,7 @@ function Dashboard() {
                 placeholder="Start writing..."
                 value={draftContent}
                 onChange={(e) => setDraftContent(e.target.value)}
+                className="content-textarea"
                 style={styles.contentTextarea}
               />
 
@@ -508,451 +566,203 @@ function Dashboard() {
 }
 
 const styles = {
-  userFooter: {
-    padding: '20px',
-    borderTop: '1px solid #eee',
-    marginTop: '20px',
-    display: 'flex',
-    justifyContent: 'center'
-  },
-  logoutButton: {
-    backgroundColor: 'rgb(124, 111, 247)',
-    color: 'white',
-    border: 'none',
-    padding: '10px 30px',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    fontSize: '16px',
-    fontWeight: '500',
-    transition: 'background-color 0.3s'
-  },
-  // Add hover effect
-  logoutButtonHover: {
-    backgroundColor: '#c82333'
-  },
-  pageContainer: {
-    display: "flex",
-    width: "100%",
-    minHeight: "100vh",
-    backgroundColor: "#0f0f1a",
-    fontFamily: "'Outfit', sans-serif",
-  },
-
-  // Sidebar
-  sidebar: {
-    width: "260px",
-    backgroundColor: "#131324",
-    borderRight: "1px solid #1e1e3a",
-    display: "flex",
-    flexDirection: "column",
-    padding: "24px 16px",
-    flexShrink: 0,
-  },
-  logoContainer: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    marginBottom: "28px",
-    padding: "0 8px",
-  },
-  logoBadge: {
-    background: "linear-gradient(135deg, #7c6ff7, #a78bfa)",
-    borderRadius: "8px",
-    padding: "6px 9px",
-    fontSize: "14px",
-    fontWeight: "900",
-    color: "white",
-  },
-  logoText: {
-    fontWeight: "700",
-    fontSize: "17px",
-    color: "#ffffff",
-  },
-  newNoteBtn: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "8px",
-    background: "linear-gradient(135deg, #7c6ff7, #a78bfa)",
-    color: "#ffffff",
-    border: "none",
-    borderRadius: "8px",
-    padding: "12px",
-    fontSize: "14px",
-    fontWeight: "600",
-    cursor: "pointer",
-    marginBottom: "24px",
-    boxShadow: "0 0 20px rgba(124, 111, 247, 0.2)",
-  },
-  navList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
-    flex: 1,
-  },
-  navItem: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "11px 12px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    color: "#9ca3af",
-    fontSize: "14px",
-    fontWeight: "500",
-    transition: "background-color 0.15s ease, color 0.15s ease",
-  },
-  navItemActive: {
-    backgroundColor: "#7c6ff7",
-    color: "#ffffff",
-  },
-  navItemLabel: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-  },
-  navBadge: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: "10px",
-    padding: "1px 8px",
-    fontSize: "12px",
-    fontWeight: "600",
-  },
-
-  // User footer
-  userFooter: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-    padding: "12px 8px",
-    borderTop: "1px solid #1e1e3a",
-    marginTop: "12px",
-  },
-  userInfo: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    cursor: "pointer",
-  },
-  avatar: {
-    width: "34px",
-    height: "34px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg, #7c6ff7, #a78bfa)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "700",
-    fontSize: "14px",
-    color: "#ffffff",
-    flexShrink: 0,
-  },
-  userName: {
-    fontSize: "14px",
-    fontWeight: "600",
-    color: "#ffffff",
-  },
-  logoutText: {
-    fontSize: "12px",
-    color: "#6b7280",
-    cursor: "pointer",
-    marginLeft: "44px",
-  },
-
-  // Main content
-  main: {
-    flex: 1,
-    padding: "28px 36px",
-    overflowY: "auto",
-  },
-
-  // Two-column layout: notes on the left, insights panel on the right
-  contentLayout: {
-    display: "flex",
-    gap: "28px",
-    alignItems: "flex-start",
-  },
-  notesColumn: {
-    flex: 1,
-    minWidth: 0,
-  },
-
-  // Top bar: title on its own row, search centered below it
-  topBar: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "18px",
-    marginBottom: "28px",
-  },
-  pageTitle: {
-    fontSize: "22px",
-    fontWeight: "700",
-    color: "#ffffff",
-    margin: 0,
-    alignSelf: "flex-start",
-  },
-  searchRow: {
-    display: "flex",
-    justifyContent: "center",
-    width: "100%",
-  },
-  searchWrapper: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    backgroundColor: "#131324",
-    border: "1px solid #1e1e3a",
-    borderRadius: "8px",
-    padding: "10px 14px",
-    width: "100%",
-    maxWidth: "420px",
-  },
-  searchInput: {
-    background: "transparent",
-    border: "none",
-    outline: "none",
-    color: "#ffffff",
-    fontSize: "14px",
-    width: "100%",
-  },
-
-  // Notes grid
+  pageContainer: { display: "flex", width: "100%", minHeight: "100vh", backgroundColor: "var(--bg)", fontFamily: "'Outfit', sans-serif" },
+  sidebar: { width: "260px", backgroundColor: "var(--surface)", borderRight: "1px solid var(--border)", display: "flex", flexDirection: "column", padding: "24px 16px", flexShrink: 0 },
+  logoContainer: { display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px", padding: "0 8px" },
+  logoBadge: { background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", borderRadius: "8px", padding: "6px 9px", fontSize: "14px", fontWeight: "900", color: "white" },
+  logoText: { fontWeight: "700", fontSize: "17px", color: "var(--text)" },
+  themeToggle: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface-alt)", color: "var(--text-muted)", fontSize: "13px", fontWeight: "600", cursor: "pointer", marginBottom: "16px", transition: "background 0.2s, color 0.2s, border-color 0.2s" },
+  newNoteBtn: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", color: "#ffffff", border: "none", borderRadius: "8px", padding: "12px", fontSize: "14px", fontWeight: "600", cursor: "pointer", marginBottom: "24px", boxShadow: "0 0 20px rgba(124, 111, 247, 0.2)" },
+  navList: { display: "flex", flexDirection: "column", gap: "4px", flex: 1 },
+  navItem: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 12px", borderRadius: "8px", cursor: "pointer", color: "var(--text-muted)", fontSize: "14px", fontWeight: "500" },
+  navItemActive: { backgroundColor: "#7c6ff7", color: "#ffffff" },
+  navItemLabel: { display: "flex", alignItems: "center", gap: "10px" },
+  navBadge: { backgroundColor: "var(--badge-bg)", borderRadius: "10px", padding: "1px 8px", fontSize: "12px", fontWeight: "600" },
+  userFooter: { display: "flex", flexDirection: "column", gap: "8px", padding: "12px 8px", borderTop: "1px solid var(--border)", marginTop: "12px" },
+  userInfo: { display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" },
+  avatar: { width: "34px", height: "34px", borderRadius: "50%", background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "14px", color: "#ffffff", flexShrink: 0 },
+  userName: { fontSize: "14px", fontWeight: "600", color: "var(--text)" },
+logoutText: {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "8px",
+  fontSize: "13px",
+  fontWeight: "600",
+  color: "#f87171",
+  cursor: "pointer",
+  padding: "10px 12px",
+  borderRadius: "8px",
+  border: "1px solid rgba(248, 113, 113, 0.2)",
+  backgroundColor: "rgba(248, 113, 113, 0.05)",
+  marginTop: "4px",
+  transition: "background-color 0.15s ease, border-color 0.15s ease",
+},  main: { flex: 1, padding: "28px 36px", overflowY: "auto" },
+  contentLayout: { display: "flex", gap: "28px", alignItems: "flex-start" },
+  notesColumn: { flex: 1, minWidth: 0 },
+  topBar: { display: "flex", flexDirection: "column", alignItems: "center", gap: "18px", marginBottom: "28px" },
+  pageTitle: { fontSize: "22px", fontWeight: "700", color: "var(--text)", margin: 0, alignSelf: "flex-start" },
+  searchRow: { display: "flex", justifyContent: "center", width: "100%" },
+  searchWrapper: { display: "flex", alignItems: "center", gap: "8px", backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", padding: "10px 14px", width: "100%", maxWidth: "420px" },
+  searchInput: { background: "transparent", border: "none", outline: "none", color: "var(--text)", fontSize: "14px", width: "100%" },
   notesGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fill, minmax(260px, 320px))",
     gap: "20px",
   },
   noteCard: {
-    backgroundColor: "#131324",
-    border: "1px solid #1e1e3a",
+    backgroundColor: "var(--surface)",
+    border: "1px solid var(--border)",
     borderRadius: "12px",
     padding: "20px",
     cursor: "pointer",
+    transition: "box-shadow 0.2s ease, border-color 0.2s ease",
+    boxShadow: "var(--card-shadow)",
+  },
+  addNoteCard: {
+    backgroundColor: "transparent",
+    border: "2px dashed var(--border-dashed)",
+    borderRadius: "12px",
+    padding: "20px",
+    cursor: "pointer",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    minHeight: "160px",
+    color: "var(--text-dim)",
+    transition: "border-color 0.2s ease, color 0.2s ease",
+  },
+  noteAccent: {
+    width: "36px",
+    height: "4px",
+    borderRadius: "2px",
+    background: "linear-gradient(90deg, #7c6ff7, #a78bfa)",
+    marginBottom: "14px",
   },
   noteTitle: {
-    fontSize: "16px",
-    fontWeight: "600",
-    color: "#ffffff",
-    margin: "0 0 10px 0",
-  },
+  fontSize: "17px",
+  fontWeight: "700",
+  color: "var(--text)",
+  margin: "0 0 8px 0",
+  letterSpacing: "-0.01em",
+  display: "-webkit-box",
+  WebkitLineClamp: 1,
+  WebkitBoxOrient: "vertical",
+  overflow: "hidden",
+  wordBreak: "break-all",
+},
   notePreview: {
     fontSize: "13px",
-    color: "#9ca3af",
-    lineHeight: "1.5",
+    color: "var(--text-preview)",
+    lineHeight: "1.6",
     margin: "0 0 20px 0",
     display: "-webkit-box",
     WebkitLineClamp: 3,
     WebkitBoxOrient: "vertical",
     overflow: "hidden",
   },
-  noteFooter: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  noteDate: {
-    fontSize: "12px",
-    color: "#4b5563",
-  },
-  noteActions: {
-    display: "flex",
-    gap: "4px",
-  },
+  noteFooter: { display: "flex", alignItems: "center", justifyContent: "space-between" },
+  noteDate: { fontSize: "12px", color: "var(--text-faint)" },
+  noteActions: { display: "flex", gap: "4px" },
   iconBtn: {
     background: "none",
     border: "none",
     cursor: "pointer",
-    padding: "4px",
+    padding: "6px",
     display: "flex",
     alignItems: "center",
-    color: "#9ca3af",
+    color: "var(--text-muted)",
+    borderRadius: "6px",
   },
   emptyState: {
-    color: "#6b7280",
-    fontSize: "14px",
-    textAlign: "center",
-    padding: "60px 0",
-  },
-
-  // Right insights panel
-  rightPanel: {
-    width: "280px",
-    flexShrink: 0,
     display: "flex",
     flexDirection: "column",
-    gap: "18px",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    padding: "80px 20px",
+    textAlign: "center",
   },
-  statsGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
-    gap: "10px",
+  emptyText: {
+    color: "var(--text-empty)",
+    fontSize: "18px",
+    fontWeight: 600,
+    margin: 0,
   },
+  emptySubtext: {
+    color: "var(--text-empty-sub)",
+    fontSize: "14px",
+    margin: 0,
+  },
+  rightPanel: { width: "280px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "18px" },
+  statsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" },
   statCard: {
-    backgroundColor: "#131324",
-    border: "1px solid #1e1e3a",
+    backgroundColor: "var(--surface)",
+    border: "1px solid var(--border)",
+    borderTop: "2px solid #7c6ff7",
     borderRadius: "10px",
     padding: "14px 8px",
     textAlign: "center",
+    transition: "transform 0.2s ease",
   },
-  statValue: {
-    fontSize: "20px",
-    fontWeight: "700",
-    color: "#ffffff",
-  },
-  statLabel: {
-    fontSize: "11px",
-    color: "#6b7280",
-    marginTop: "4px",
-  },
-  panelCard: {
-    backgroundColor: "#131324",
-    border: "1px solid #1e1e3a",
-    borderRadius: "12px",
-    padding: "18px",
-  },
-  panelHeader: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    marginBottom: "16px",
-  },
-  panelHeaderText: {
-    fontSize: "13px",
-    fontWeight: "600",
-    color: "#ffffff",
-  },
-  barChart: {
-    display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    height: "100px",
-    gap: "6px",
-  },
-  barColumn: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "6px",
-    flex: 1,
-  },
-  barTrack: {
-    width: "100%",
-    height: "80px",
-    display: "flex",
-    alignItems: "flex-end",
-    backgroundColor: "#1a1a30",
-    borderRadius: "4px",
-    overflow: "hidden",
-  },
-  barFill: {
-    width: "100%",
-    background: "linear-gradient(180deg, #a78bfa, #7c6ff7)",
-    borderRadius: "4px 4px 0 0",
-  },
-  barLabel: {
-    fontSize: "10px",
-    color: "#6b7280",
-  },
-  tipText: {
-    fontSize: "13px",
-    color: "#9ca3af",
-    lineHeight: "1.6",
-    margin: 0,
-  },
-
-  // Modal
-  modalOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 100,
-    padding: "20px",
-  },
+  statValue: { fontSize: "20px", fontWeight: "700", color: "var(--text)" },
+  statLabel: { fontSize: "11px", color: "var(--text-dim)", marginTop: "4px" },
+  panelCard: { backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "18px" },
+  panelHeader: { display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" },
+  panelHeaderText: { fontSize: "13px", fontWeight: "600", color: "var(--text)" },
+  barChart: { display: "flex", alignItems: "flex-end", justifyContent: "space-between", height: "100px", gap: "6px" },
+  barColumn: { display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", flex: 1 },
+  barTrack: { width: "100%", height: "80px", display: "flex", alignItems: "flex-end", backgroundColor: "var(--surface-alt)", borderRadius: "4px", overflow: "hidden" },
+  barFill: { width: "100%", background: "linear-gradient(180deg, #a78bfa, #7c6ff7)", borderRadius: "4px 4px 0 0" },
+  barLabel: { fontSize: "10px", color: "var(--text-dim)" },
+  tipText: { fontSize: "13px", color: "var(--text-muted)", lineHeight: "1.6", margin: 0 },
+  modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "20px" },
   modalCard: {
-    backgroundColor: "#131324",
-    border: "1px solid #1e1e3a",
+    backgroundColor: "var(--surface)",
+    border: "1px solid var(--border-dashed)",
     borderRadius: "16px",
     width: "100%",
     maxWidth: "560px",
     padding: "24px",
-    boxShadow: "0 30px 100px rgba(0,0,0,0.6)",
+    boxShadow: "var(--modal-shadow)",
     display: "flex",
     flexDirection: "column",
   },
-  modalHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: "16px",
-  },
-  modalTitle: {
-    fontSize: "18px",
-    fontWeight: "600",
-    color: "#ffffff",
-    margin: 0,
-  },
-  closeBtn: {
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    display: "flex",
-  },
+  modalHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" },
+  modalTitle: { fontSize: "18px", fontWeight: "600", color: "var(--text)", margin: 0 },
+  closeBtn: { background: "none", border: "none", cursor: "pointer", display: "flex" },
   titleInput: {
-    backgroundColor: "transparent",
-    border: "1px solid #1e1e3a",
+    backgroundColor: "var(--input-bg)",
+    border: "1px solid var(--border)",
     borderRadius: "8px",
     padding: "12px 14px",
     fontSize: "16px",
     fontWeight: "600",
-    color: "#ffffff",
+    color: "var(--text)",
     outline: "none",
     marginBottom: "12px",
+    transition: "border-color 0.2s ease",
   },
   contentTextarea: {
-    backgroundColor: "transparent",
-    border: "1px solid #1e1e3a",
+    backgroundColor: "var(--input-bg)",
+    border: "1px solid var(--border)",
     borderRadius: "8px",
     padding: "12px 14px",
     fontSize: "14px",
-    color: "#ffffff",
+    color: "var(--text)",
     outline: "none",
     minHeight: "180px",
     resize: "vertical",
     fontFamily: "'Outfit', sans-serif",
     lineHeight: "1.6",
     marginBottom: "20px",
+    transition: "border-color 0.2s ease",
   },
-  modalFooter: {
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: "12px",
-  },
-  cancelBtn: {
-    backgroundColor: "transparent",
-    border: "1px solid #1e1e3a",
-    borderRadius: "8px",
-    padding: "10px 18px",
-    color: "#9ca3af",
-    fontSize: "14px",
-    fontWeight: "600",
-    cursor: "pointer",
-  },
-  saveBtn: {
-    background: "linear-gradient(135deg, #7c6ff7, #a78bfa)",
-    border: "none",
-    borderRadius: "8px",
-    padding: "10px 18px",
-    color: "#ffffff",
-    fontSize: "14px",
-    fontWeight: "600",
-  },
+  modalFooter: { display: "flex", justifyContent: "flex-end", gap: "12px" },
+  cancelBtn: { backgroundColor: "transparent", border: "1px solid var(--border)", borderRadius: "8px", padding: "10px 18px", color: "var(--text-muted)", fontSize: "14px", fontWeight: "600", cursor: "pointer" },
+  saveBtn: { background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", border: "none", borderRadius: "8px", padding: "10px 18px", color: "#ffffff", fontSize: "14px", fontWeight: "600" },
 };
 
 export default Dashboard;
