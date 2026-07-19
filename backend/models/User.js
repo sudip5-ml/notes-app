@@ -16,14 +16,17 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
   }
 }, {
   timestamps: true
 })
 
-// Ensure virtual fields (like .id) are serialized to JSON
 userSchema.set('toJSON', { virtuals: true })
 userSchema.set('toObject', { virtuals: true })
 
 module.exports = mongoose.model('User', userSchema)
-

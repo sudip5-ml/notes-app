@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser')
 
 const authRoutes = require('./routes/authRoutes')
 const noteRoutes = require('./routes/noteRoutes')
+const userRoutes = require('./src/routes/userRoute')
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -27,6 +28,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api/auth', authRoutes)
 app.use('/api/notes', noteRoutes)
+app.use('/api/users', userRoutes)
 
 // Global error handler
 app.use((err, req, res, next) => {

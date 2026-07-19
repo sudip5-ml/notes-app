@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
 import "../css/Signup.css";
 
 function Signup() {
@@ -96,29 +95,6 @@ function Signup() {
 } finally {
   setLoading(false);
 }
-  };
-
-  const handleGoogleSignup = () => {
-    setLoadingGoogle(true);
-    setError("");
-
-    setTimeout(() => {
-      localStorage.setItem("token", "google_demo_mock_token_12345");
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: 9999,
-          username: "Google User",
-          email: "google@gmail.com",
-        })
-      );
-
-      setLoadingGoogle(false);
-      setSuccess(true);
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1000);
-    }, 1200);
   };
 
   return (

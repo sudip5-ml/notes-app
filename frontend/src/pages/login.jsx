@@ -68,8 +68,13 @@ function Login() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      setSuccess(true);
-      setTimeout(() => navigate("/dashboard"), 1000);
+     setSuccess(true);
+     console.log("DEBUG - user role:", data.user?.role);
+
+      // Admins go to the admin dashboard, everyone else goes to /dashboard.
+      setTimeout(() => {
+  window.location.href = data.user?.role === "admin" ? "/adminDashboard" : "/dashboard";
+}, 1000);
     } catch (err) {
   if (err instanceof TypeError) {
     setError("Can't reach the server — is the backend running?");
@@ -79,27 +84,6 @@ function Login() {
 } finally {
   setLoading(false);
 }
-  };
-
-  const handleGoogleLogin = () => {
-    setLoadingGoogle(true);
-    setError("");
-
-    setTimeout(() => {
-      localStorage.setItem("token", "google_demo_mock_token_12345");
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: 9999,
-          username: "Google User",
-          email: "google@gmail.com",
-        })
-      );
-
-      setLoadingGoogle(false);
-      setSuccess(true);
-      setTimeout(() => navigate("/dashboard"), 1000);
-    }, 1200);
   };
 
   // Helper to combine base input style with focus state
@@ -192,6 +176,7 @@ function Login() {
               )}
             </button>
           </form>
+
 
           <div style={styles.footerLinkContainer}>
             <span style={styles.footerText}>Don't have an account? </span>
