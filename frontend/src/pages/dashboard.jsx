@@ -425,7 +425,7 @@ whileHover={{ y: -3, borderColor: "var(--accent)", boxShadow: "0 8px 24px var(--
                     </motion.div>
                   ))}
                 </AnimatePresence>
-                {activeNav !== "trash" && (
+               {activeNav !== "trash" && notes.filter(n => !n.trashed).length === 0 && (
   <div
     className="add-note-card"
     style={styles.addNoteCard}

@@ -4,7 +4,9 @@ const { sendError } = require('../utils/helpers')
 // Get all notes for the authenticated user
 const getAllNotes = async (req, res) => {
   try {
-    const notes = await Note.find({ user_id: req.user.id }).sort({ created_at: -1 })
+    const notes = await Note.find({ user_id: req.user.id })
+      .select('title content favorite is_trash tags isPinned created_at updated_at')
+      .sort({ created_at: -1 })
     res.json(notes)
   } catch (err) {
     console.error('Error fetching notes:', err)

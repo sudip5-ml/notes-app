@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import dashboardVideo from '../assets/vidforloop.mp4'
+import dashboardVideo from '../assets/screen_recording_cropped_no_chrome_tab5555.mp4'
 
 function Hero() {
   const navigate = useNavigate()
@@ -199,6 +199,7 @@ function Hero() {
             style={{
               width: '100%',
               display: 'block',
+              objectFit: 'cover',
               borderBottomLeftRadius: '16px',
               borderBottomRightRadius: '16px'
             }}

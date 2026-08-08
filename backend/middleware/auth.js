@@ -1,13 +1,16 @@
 const jwt = require('jsonwebtoken')
 const { sendError } = require('../utils/helpers')
 
-const JWT_SECRET = process.env.JWT_SECRET || 'notes_app_jwt_secret_key_98765'
+if (!process.env.JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable is missing.')
+}
+const JWT_SECRET = process.env.JWT_SECRET
 
 const authenticateToken = (req, res, next) => {
-  const tokenFromCookie = req.cookies?.token
+ 
   const authHeader = req.headers['authorization']
-  const tokenFromHeader = authHeader && authHeader.split(' ')[1]
-  const token = tokenFromCookie || tokenFromHeader
+const token = req.cookies?.token || (authHeader && authHeader.split(' ')[1])
+
 
   if (!token) {
     return sendError(res, 401, 'Access token required. Please log in.')

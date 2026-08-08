@@ -11,7 +11,7 @@ const headers = () => ({
 
 async function request(url, options = {}) {
   try {
-    const res = await fetch(url, options);
+    const res = await fetch(url, { credentials: "include", ...options });
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       throw new Error(errorData.message || `HTTP error ${res.status}`);

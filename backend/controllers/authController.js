@@ -3,7 +3,10 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 const { sendError } = require('../utils/helpers')
 
-const JWT_SECRET = process.env.JWT_SECRET || 'notes_app_jwt_secret_key_98765'
+if (!process.env.JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable is missing.')
+}
+const JWT_SECRET = process.env.JWT_SECRET
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
