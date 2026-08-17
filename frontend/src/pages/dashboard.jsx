@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -251,6 +251,17 @@ function Dashboard() {
           New Note
         </motion.button>
 
+        <div style={styles.sidebarSearchWrapper}>
+          <FiSearch size={14} style={{ color: "var(--text-dim)", flexShrink: 0 }} />
+          <input
+            type="text"
+            placeholder="Search notes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={styles.sidebarSearchInput}
+          />
+        </div>
+
         <nav style={styles.navList}>
           <div
             style={{ ...styles.navItem, ...(activeNav === "all" ? styles.navItemActive : {}) }}
@@ -305,25 +316,27 @@ function Dashboard() {
         <div style={styles.contentLayout}>
           <div style={styles.notesColumn}>
             <div style={styles.topBar}>
-              <h1 style={styles.pageTitle}>
-                {activeNav === "favorites"
-                  ? "Favorites"
-                  : activeNav === "trash"
-                  ? "Trash"
-                  : "All Notes"}
-              </h1>
-
-              <div style={styles.searchRow}>
-                <div style={styles.searchWrapper}>
-                  <FiSearch size={16} style={{ color: "var(--text-dim)" }} />
-                  <input
-                    type="text"
-                    placeholder="Search notes..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    style={styles.searchInput}
-                  />
-                </div>
+              <div style={styles.topBarTitleRow}>
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  style={styles.greetingText}
+                >
+                  {(() => {
+                    const hour = new Date().getHours();
+                    const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+                    const firstName = (user.username || "Guest").split(" ")[0];
+                    return `${greeting}, ${firstName} ✨`;
+                  })()}
+                </motion.div>
+                <h1 style={styles.pageTitle}>
+                  {activeNav === "favorites"
+                    ? "Favorites"
+                    : activeNav === "trash"
+                    ? "Trash"
+                    : "All Notes"}
+                </h1>
               </div>
             </div>
 
@@ -355,7 +368,7 @@ function Dashboard() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ duration: 0.25, delay: index * 0.03 }}
-whileHover={{ y: -3, borderColor: "var(--accent)", boxShadow: "0 8px 24px var(--accent-glow)" }}
+                      whileHover={{ scale: 1.02, y: -3, borderColor: "#7c6ff7", boxShadow: "0 8px 30px rgba(124, 111, 247, 0.25)" }}
                       style={styles.noteCard}
                       onClick={() => activeNav !== "trash" && openEditNoteEditor(note)}
                     >
@@ -440,15 +453,15 @@ whileHover={{ y: -3, borderColor: "var(--accent)", boxShadow: "0 8px 24px var(--
           </div>
 
           <aside style={styles.rightPanel}>
-  <div style={{ ...styles.statCard, borderTop: "3px solid #7c6ff7", background: "linear-gradient(180deg, rgba(124,111,247,0.08), var(--surface) 40%)" }}>
+  <div style={{ ...styles.statCard, borderTop: "1px solid #7c6ff7", background: "linear-gradient(180deg, rgba(124,111,247,0.08), var(--surface) 40%)" }}>
   <div style={styles.statValue}>{activeCount}</div>
   <div style={styles.statLabel}>Total Notes</div>
 </div>
-<div style={{ ...styles.statCard, borderTop: "3px solid #facc15", background: "linear-gradient(180deg, rgba(250,204,21,0.08), var(--surface) 40%)" }}>
+<div style={{ ...styles.statCard, borderTop: "1px solid #facc15", background: "linear-gradient(180deg, rgba(250,204,21,0.08), var(--surface) 40%)" }}>
   <div style={{ ...styles.statValue, color: "#facc15" }}>{favoriteCount}</div>
   <div style={styles.statLabel}>Favorites</div>
 </div>
-<div style={{ ...styles.statCard, borderTop: "3px solid #f87171", background: "linear-gradient(180deg, rgba(248,113,113,0.08), var(--surface) 40%)" }}>
+<div style={{ ...styles.statCard, borderTop: "1px solid #f87171", background: "linear-gradient(180deg, rgba(248,113,113,0.08), var(--surface) 40%)" }}>
   <div style={{ ...styles.statValue, color: "#f87171" }}>{trashCount}</div>
   <div style={styles.statLabel}>In Trash</div>
 </div>
@@ -462,12 +475,14 @@ whileHover={{ y: -3, borderColor: "var(--accent)", boxShadow: "0 8px 24px var(--
                 {weeklyActivity.map((d) => (
                   <div key={d.day} style={styles.barColumn}>
                     <div style={styles.barTrack}>
-                      <motion.div
-                        style={styles.barFill}
-                        initial={{ height: 0 }}
-                        animate={{ height: `${Math.max(d.pct, 4)}%` }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                      />
+                      {d.count > 0 && (
+                        <motion.div
+                          style={styles.barFill}
+                          initial={{ height: 0 }}
+                          animate={{ height: `${d.pct}%` }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                        />
+                      )}
                     </div>
                     <span style={styles.barLabel}>{d.day}</span>
                   </div>
@@ -572,7 +587,9 @@ const styles = {
   logoBadge: { background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", borderRadius: "8px", padding: "6px 9px", fontSize: "14px", fontWeight: "900", color: "white" },
   logoText: { fontWeight: "700", fontSize: "17px", color: "var(--text)" },
   themeToggle: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface-alt)", color: "var(--text-muted)", fontSize: "13px", fontWeight: "600", cursor: "pointer", marginBottom: "16px", transition: "background 0.2s, color 0.2s, border-color 0.2s" },
-  newNoteBtn: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "linear-gradient(135deg, #7c6ff7, #a78bfa)", color: "#ffffff", border: "none", borderRadius: "8px", padding: "12px", fontSize: "14px", fontWeight: "600", cursor: "pointer", marginBottom: "24px", boxShadow: "0 0 20px rgba(124, 111, 247, 0.2)" },
+  newNoteBtn: { display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#ffffff", color: "#7c6ff7", border: "1px solid var(--border)", borderRadius: "8px", padding: "12px", fontSize: "14px", fontWeight: "700", cursor: "pointer", marginBottom: "16px", boxShadow: "none" },
+  sidebarSearchWrapper: { display: "flex", alignItems: "center", gap: "8px", backgroundColor: "var(--surface-alt)", border: "1px solid var(--border)", borderRadius: "8px", padding: "9px 12px", marginBottom: "16px", width: "100%" },
+  sidebarSearchInput: { background: "transparent", border: "none", outline: "none", color: "var(--text)", fontSize: "13px", width: "100%" },
   navList: { display: "flex", flexDirection: "column", gap: "4px", flex: 1 },
   navItem: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 12px", borderRadius: "8px", cursor: "pointer", color: "var(--text-muted)", fontSize: "14px", fontWeight: "500" },
   navItemActive: { backgroundColor: "#7c6ff7", color: "#ffffff" },
@@ -601,6 +618,8 @@ logoutText: {
   contentLayout: { display: "flex", gap: "28px", alignItems: "flex-start" },
   notesColumn: { flex: 1, minWidth: 0 },
   topBar: { display: "flex", flexDirection: "column", alignItems: "center", gap: "18px", marginBottom: "28px" },
+  topBarTitleRow: { display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "4px", width: "100%" },
+  greetingText: { fontSize: "14px", fontWeight: "500", color: "var(--text-dim)" },
   pageTitle: { fontSize: "22px", fontWeight: "700", color: "var(--text)", margin: 0, alignSelf: "flex-start" },
   searchRow: { display: "flex", justifyContent: "center", width: "100%" },
   searchWrapper: { display: "flex", alignItems: "center", gap: "8px", backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", padding: "10px 14px", width: "100%", maxWidth: "420px" },
@@ -701,7 +720,7 @@ logoutText: {
   statCard: {
     backgroundColor: "var(--surface)",
     border: "1px solid var(--border)",
-    borderTop: "2px solid #7c6ff7",
+    borderTop: "1px solid #7c6ff7",
     borderRadius: "10px",
     padding: "14px 8px",
     textAlign: "center",
