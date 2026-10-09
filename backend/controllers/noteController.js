@@ -101,6 +101,20 @@ const deleteNote = async (req, res) => {
 
 // Delete multiple notes permanently
 const bulkDeleteNotes = async (req, res) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids)) {
+    return sendError(res, 400, 'Invalid request. An array of ids is required.');
+  }
+  try {
+    const result = await Note.deleteMany({ _id: { $in: ids }, user_id: req.user.id });
+    res.json({ message: `${result.deletedCount} notes deleted permanently.` });
+  } catch (err) {
+    return sendError(res, 500, 'Database error deleting notes.');
+  }
+}
+
+// Restore multiple notes from trash
+const bulkRestoreNotes = async (req, res) => {
   const { ids } = req.body
 
   if (!ids || !Array.isArray(ids)) {
@@ -108,12 +122,23 @@ const bulkDeleteNotes = async (req, res) => {
   }
 
   try {
-    const result = await Note.deleteMany({ _id: { $in: ids }, user_id: req.user.id })
-    res.json({ message: `Successfully deleted ${result.deletedCount} notes.` })
+    const result = await Note.updateMany(
+      { _id: { $in: ids }, user_id: req.user.id },
+      { is_trash: false }
+    )
+    res.json({ message: `Successfully restored ${result.modifiedCount} notes.` })
   } catch (err) {
-    console.error('Error bulk deleting notes:', err)
-    return sendError(res, 500, 'Database error bulk deleting notes.')
+    console.error('Error bulk restoring notes:', err)
+    return sendError(res, 500, 'Database error bulk restoring notes.')
   }
 }
 
-module.exports = { getAllNotes, createNote, updateNote, deleteNote, bulkDeleteNotes }
+module.exports = {
+  getAllNotes,
+  getNoteById,
+  createNote,
+  updateNote,
+  deleteNote,
+  bulkDeleteNotes,
+  bulkRestoreNotes,
+} 

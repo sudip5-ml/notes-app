@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const authenticateToken = require('../middleware/auth')
 const { validateCreateNote, validateUpdateNote } = require('../middleware/zodValidate')
-const { getAllNotes, createNote, updateNote, deleteNote, bulkDeleteNotes } = require('../controllers/noteController')
+const { getAllNotes, createNote, updateNote, deleteNote, bulkDeleteNotes, bulkRestoreNotes } = require('../controllers/noteController')
 
 // All note routes require authentication
 router.use(authenticateToken)
@@ -10,6 +10,7 @@ router.use(authenticateToken)
 router.get('/', getAllNotes)
 router.post('/', validateCreateNote, createNote)
 router.post('/bulk-delete', bulkDeleteNotes)
+router.post('/bulk-restore', bulkRestoreNotes)
 router.put('/:id', validateUpdateNote, updateNote)
 router.delete('/:id', deleteNote)
 

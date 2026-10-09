@@ -13,6 +13,8 @@ import {
   FiSun,
   FiMoon,
   FiLogOut,
+  FiDownload,
+  FiBookmark,
 } from "react-icons/fi";
 import { fetchNotes, createNote, updateNote, deleteNote } from "../utils/api";
 import toast from "react-hot-toast";
@@ -25,6 +27,7 @@ const mapNote = (n) => ({
   date: (n.created_at || n.updated_at || "").split("T")[0],
   favorite: n.favorite,
   trashed: n.is_trash,
+  isPinned: n.isPinned,
 });
 
 function Dashboard() {
@@ -42,7 +45,10 @@ function Dashboard() {
 
   const [notes, setNotes] = useState([]);
 
-  const user = JSON.parse(localStorage.getItem("user")) || { username: "Guest" };
+  let user = { username: "Guest" };
+  try {
+    user = JSON.parse(localStorage.getItem("user")) || user;
+  } catch {}
 
   const visibleNotes = notes.filter((n) => {
     if (activeNav === "favorites") return n.favorite && !n.trashed;
@@ -67,7 +73,7 @@ function Dashboard() {
 
     notes.forEach((note) => {
       const d = new Date(note.date);
-      if (!isNaN(d)) {
+      if (!isNaN(d.getTime())) {
         const dayLabel = days[(d.getDay() + 6) % 7];
         counts[dayLabel] += 1;
       }
@@ -202,6 +208,26 @@ function Dashboard() {
       console.error("Failed to delete note:", err);
       toast.error("Couldn't delete note");
     }
+  };
+
+  const togglePin = async (id, isPinned) => {
+    try {
+      const updated = await updateNote(id, { isPinned: !isPinned });
+      setNotes(notes.map((n) => (n.id === id ? mapNote(updated) : n)));
+      toast.success(isPinned ? "Note unpinned" : "Note pinned");
+    } catch (err) {
+      console.error("Failed to toggle pin:", err);
+      toast.error("Couldn't update pin state");
+    }
+  };
+
+  const exportNote = (note) => {
+    const blob = new Blob([`${note.title}\n\n${note.content}`], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${note.title || "note"}.txt`;
+    a.click();
+    toast.success("Exported note");
   };
 
   const handleLogout = () => {
@@ -412,8 +438,25 @@ function Dashboard() {
                                 style={styles.iconBtn}
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  togglePin(note.id, note.isPinned);
+                                }}
+                                title={note.isPinned ? "Unpin note" : "Pin note"}
+                              >
+                                <FiBookmark
+                                  size={14}
+                                  color={note.isPinned ? "#7c6ff7" : "var(--text-muted)"}
+                                  fill={note.isPinned ? "#7c6ff7" : "none"}
+                                />
+                              </motion.button>
+                              <motion.button
+                                className="icon-btn"
+                                whileTap={{ scale: 1.4 }}
+                                style={styles.iconBtn}
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   toggleFavorite(note.id);
                                 }}
+                                title="Favorite"
                               >
                                 <FiStar
                                   size={14}
@@ -426,8 +469,20 @@ function Dashboard() {
                                 style={styles.iconBtn}
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  exportNote(note);
+                                }}
+                                title="Export note"
+                              >
+                                <FiDownload size={14} color="var(--text-muted)" />
+                              </button>
+                              <button
+                                className="icon-btn"
+                                style={styles.iconBtn}
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   moveToTrash(note.id);
                                 }}
+                                title="Move to trash"
                               >
                                 <FiTrash2 size={14} color="var(--text-muted)" />
                               </button>

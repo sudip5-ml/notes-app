@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import ScrollToTop from './components/ScrollToTop'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
@@ -21,10 +22,15 @@ import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from './context/ThemeContext'
 
 function App() {
-  const token = localStorage.getItem('token');
-  const userData = localStorage.getItem('user');
-  const user = userData ? JSON.parse(userData) : null;
-  const isAuthenticated = !!token;
+  const [isAuthenticated] = useState(() => !!localStorage.getItem('token'));
+  const [user] = useState(() => {
+    try {
+      const userData = localStorage.getItem('user');
+      return userData ? JSON.parse(userData) : null;
+    } catch {
+      return null;
+    }
+  });
 
   // Protected Route wrapper — only enforces role check if requiredRole is passed
   const ProtectedRoute = ({ children, requiredRole }) => {
