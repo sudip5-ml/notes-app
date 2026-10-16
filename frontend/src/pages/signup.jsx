@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
 import "../css/Signup.css";
 
 function Signup() {
@@ -88,33 +87,14 @@ function Signup() {
         navigate("/dashboard");
       }, 1000);
     } catch (err) {
-      setError(err.message || "Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSignup = () => {
-    setLoadingGoogle(true);
-    setError("");
-
-    setTimeout(() => {
-      localStorage.setItem("token", "google_demo_mock_token_12345");
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: 9999,
-          username: "Google User",
-          email: "google@gmail.com",
-        })
-      );
-
-      setLoadingGoogle(false);
-      setSuccess(true);
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1000);
-    }, 1200);
+  if (err instanceof TypeError) {
+    setError("Can't reach the server — is the backend running?");
+  } else {
+    setError(err.message || "Something went wrong. Please try again.");
+  }
+} finally {
+  setLoading(false);
+}
   };
 
   return (
@@ -279,33 +259,6 @@ function Signup() {
               )}
             </motion.button>
           </form>
-
-          <div style={styles.separatorContainer}>
-            <div style={styles.separatorLine}></div>
-            <span style={styles.separatorText}>or</span>
-            <div style={styles.separatorLine}></div>
-          </div>
-
-          <motion.button
-            type="button"
-            onClick={handleGoogleSignup}
-            disabled={loading || loadingGoogle}
-            whileHover={{ scale: 1.02, backgroundColor: "#1e1e36" }}
-            whileTap={{ scale: 0.98 }}
-            style={styles.googleBtn}
-          >
-            {loadingGoogle ? (
-              <div style={styles.loaderContainer}>
-                <div style={styles.spinner}></div>
-                <span>Connecting...</span>
-              </div>
-            ) : (
-              <>
-                <FcGoogle size={20} />
-                <span>Sign up with Google</span>
-              </>
-            )}
-          </motion.button>
 
           <div style={styles.footerLinkContainer}>
             <span style={styles.footerText}>Already have an account? </span>

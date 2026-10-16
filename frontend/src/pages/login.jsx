@@ -68,42 +68,22 @@ function Login() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      setSuccess(true);
+     setSuccess(true);
+     console.log("DEBUG - user role:", data.user?.role);
 
-      // Admins go to /admin, everyone else goes to /dashboard.
-      // This depends on your backend's login response including
-      // "role" on the user object.
+      // Admins go to the admin dashboard, everyone else goes to /dashboard.
       setTimeout(() => {
-        navigate(data.user.role === "admin" ? "/admindashboard" : "/dashboard");
-      }, 1000);
+  window.location.href = data.user?.role === "admin" ? "/adminDashboard" : "/dashboard";
+}, 1000);
     } catch (err) {
-      setError(err.message || "Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = () => {
-    setLoadingGoogle(true);
-    setError("");
-
-    setTimeout(() => {
-      const mockUser = {
-        id: 9999,
-        username: "Google User",
-        email: "google@gmail.com",
-        role: "admin",
-      };
-
-      localStorage.setItem("token", "google_demo_mock_token_12345");
-      localStorage.setItem("user", JSON.stringify(mockUser));
-
-      setLoadingGoogle(false);
-      setSuccess(true);
-      setTimeout(() => {
-        navigate(mockUser.role === "admin" ? "/admindashboard" : "/dashboard");
-      }, 1000);
-    }, 1200);
+  if (err instanceof TypeError) {
+    setError("Can't reach the server — is the backend running?");
+  } else {
+    setError(err.message || "Something went wrong. Please try again.");
+  }
+} finally {
+  setLoading(false);
+}
   };
 
   // Helper to combine base input style with focus state
@@ -197,27 +177,6 @@ function Login() {
             </button>
           </form>
 
-          <div style={styles.separatorContainer}>
-            <span style={styles.separatorLine} />
-            <span style={styles.separatorText}>OR</span>
-            <span style={styles.separatorLine} />
-          </div>
-
-          <button
-            type="button"
-            style={styles.googleBtn}
-            onClick={handleGoogleLogin}
-            disabled={loadingGoogle}
-          >
-            {loadingGoogle ? (
-              <span style={styles.loaderContainer}>
-                <span style={styles.spinner} />
-                Connecting...
-              </span>
-            ) : (
-              "Continue with Google"
-            )}
-          </button>
 
           <div style={styles.footerLinkContainer}>
             <span style={styles.footerText}>Don't have an account? </span>

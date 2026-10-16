@@ -38,43 +38,95 @@ button, input, textarea, select {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f0f1a;
+  background: var(--scrollbar-track, #0f0f1a);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e1e3a;
+  background: var(--scrollbar-thumb, #1e1e3a);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #7c6ff7;
 }
 
- /* ── THEME VARIABLES ── */
+/* ── THEME VARIABLES ── */
 :root[data-theme="dark"] {
-  --bg:               #0a0a0f;
-  --surface:          #13131a;
-  --surface2:         #1c1c28;
-  --border:           rgba(255, 255, 255, 0.08);
-  --text:             #f0f0ff;
-  --text-muted:       #8888aa;
-  --accent:           #4d7cff;
-  --accent-glow:      rgba(77, 124, 255, 0.35);
-  --nav-bg:           rgba(10, 10, 15, 0.85);
+  /* Base */
+  --bg:               #0f0f1a;
+  --surface:          #131324;
+  --surface-alt:      #1a1a30;
+  --border:           #1e1e3a;
+  --border-dashed:    #2a2a4a;
+  --placeholder-color:#6b7280;
+
+  /* Text */
+  --text:             #ffffff;
+  --text-muted:       #9ca3af;
+  --text-dim:         #6b7280;
+  --text-preview:     #7a7a9a;
+  --text-faint:       #4b5563;
+  --text-empty:       #8a8ab0;
+  --text-empty-sub:   #5a5a7a;
+  --empty-icon:       #3a3a5a;
+
+  /* Accent */
+  --accent:           #7c6ff7;
+  --accent-light:     #a78bfa;
+  --accent-glow:      rgba(124, 111, 247, 0.2);
+
+  /* Surfaces & effects */
+  --input-bg:         rgba(124, 111, 247, 0.05);
+  --overlay:          rgba(0, 0, 0, 0.6);
+  --card-shadow:      0 1px 3px rgba(0,0,0,0.3);
+  --modal-shadow:     0 30px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,111,247,0.1);
+  --badge-bg:         rgba(255, 255, 255, 0.2);
+  --icon-hover-bg:    rgba(255, 255, 255, 0.08);
+  --scrollbar-track:  #0f0f1a;
+  --scrollbar-thumb:  #1e1e3a;
+
+  /* Landing page (preserved) */
+  --nav-bg:           rgba(15, 15, 26, 0.95);
   --btn-outline-border: rgba(255, 255, 255, 0.25);
   --btn-outline-text: #f0f0ff;
 }
 
 :root[data-theme="light"] {
-  --bg:               #f5f6ff;
+  /* Base */
+  --bg:               #f4f5fb;
   --surface:          #ffffff;
-  --surface2:         #eef0ff;
-  --border:           rgba(0, 0, 0, 0.08);
-  --text:             #0d0d1a;
-  --text-muted:       #5a5a7a;
-  --accent:           #3560f5;
-  --accent-glow:      rgba(53, 96, 245, 0.2);
-  --nav-bg:           rgba(245, 246, 255, 0.88);
+  --surface-alt:      #eef0ff;
+  --border:           #e2e4f0;
+  --border-dashed:    #c8cadf;
+  --placeholder-color:#8b8da0;
+
+  /* Text */
+  --text:             #1a1a2e;
+  --text-muted:       #6b7280;
+  --text-dim:         #8b8da0;
+  --text-preview:     #64648a;
+  --text-faint:       #9ca3af;
+  --text-empty:       #7a7a9a;
+  --text-empty-sub:   #9ca3af;
+  --empty-icon:       #c0c0d8;
+
+  /* Accent */
+  --accent:           #7c6ff7;
+  --accent-light:     #a78bfa;
+  --accent-glow:      rgba(124, 111, 247, 0.15);
+
+  /* Surfaces & effects */
+  --input-bg:         rgba(124, 111, 247, 0.06);
+  --overlay:          rgba(0, 0, 0, 0.3);
+  --card-shadow:      0 1px 4px rgba(0,0,0,0.06);
+  --modal-shadow:     0 30px 100px rgba(0,0,0,0.15), 0 0 0 1px rgba(124,111,247,0.08);
+  --badge-bg:         rgba(124, 111, 247, 0.12);
+  --icon-hover-bg:    rgba(0, 0, 0, 0.05);
+  --scrollbar-track:  #f4f5fb;
+  --scrollbar-thumb:  #d0d2e0;
+
+  /* Landing page (preserved) */
+  --nav-bg:           rgba(244, 245, 251, 0.9);
   --btn-outline-border: rgba(0, 0, 0, 0.2);
-  --btn-outline-text: #0d0d1a;
+  --btn-outline-text: #1a1a2e;
 }
 
 /* ── SMOOTH TRANSITION ── */
@@ -102,4 +154,27 @@ body {
 .theme-toggle:hover {
   color: var(--text);
   box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.icon-btn {
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.icon-btn:hover {
+  background-color: var(--icon-hover-bg, rgba(255, 255, 255, 0.08));
+  transform: scale(1.1);
+}
+
+.add-note-card {
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.add-note-card:hover {
+  border-color: #7c6ff7 !important;
+  color: #a78bfa !important;
+}
+
+.title-input::placeholder,
+.content-textarea::placeholder {
+  color: var(--placeholder-color) !important;
+  opacity: 1;
 }
